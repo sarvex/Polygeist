@@ -223,7 +223,7 @@ static void plutoParallelize(mlir::affine::AffineForOp forOp, OpBuilder b) {
 
   // Creating empty 1-D affine.parallel op.
   mlir::affine::AffineParallelOp newPloop = b.create<mlir::affine::AffineParallelOp>(
-      loc, ValueRange(), mlir::ValueRange(), lowerBoundMap, lowerBoundOperands,
+      loc, TypeRange(), ArrayRef<arith::AtomicRMWKind>(), lowerBoundMap, lowerBoundOperands,
       upperBoundMap, upperBoundOperands, 1);
   // Steal the body of the old affine for op and erase it.
   newPloop.getRegion().takeBody(forOp.getRegion());
