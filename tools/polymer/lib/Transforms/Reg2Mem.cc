@@ -55,7 +55,7 @@ static void mapDefToUses(mlir::func::FuncOp f, DefToUsesMap &defToUses) {
         !useOp->hasTrait<mlir::OpTrait::HasRecursiveSideEffects>())
       return;
     // Should filter out for and if ops.
-    if (isa<mlir::affine::AffineForOp, mlir::AffineIfOp>(useOp))
+    if (isa<mlir::affine::AffineForOp, mlir::affine::AffineIfOp>(useOp))
       return;
 
     // Assuming the def-use chain is acyclic.
@@ -69,12 +69,12 @@ static void mapDefToUses(mlir::func::FuncOp f, DefToUsesMap &defToUses) {
         mlir::Operation *defOp = v.getDefiningOp();
         // Don't need to go further if v is defined by the following operations.
         // - AllocOp: we cannot load/store a memref value itself;
-        // - DimOp/AffineApplyOp: indices and bounds shouldn't be loaded from
+        // - DimOp/affine::AffineApplyOp: indices and bounds shouldn't be loaded from
         // memory, otherwise, it would mess up with the dependence analysis.
 
         if (!defOp ||
             isa<memref::AllocOp, memref::AllocaOp, memref::DimOp,
-                mlir::arith::ConstantOp, mlir::AffineApplyOp>(defOp) ||
+                mlir::arith::ConstantOp, mlir::affine::AffineApplyOp>(defOp) ||
             (isa<mlir::arith::IndexCastOp>(defOp) &&
              defOp->getOperand(0).isa<BlockArgument>()))
           continue;
@@ -264,7 +264,7 @@ static void separateAffineIfBlocks(mlir::func::FuncOp f, OpBuilder &b) {
   // Get the first affine.if operation that has an else block.
   auto findIfWithElse = [&](auto &f) {
     Operation *opFound = nullptr;
-    f.walk([&](mlir::AffineIfOp ifOp) {
+    f.walk([&](mlir::affine::AffineIfOp ifOp) {
       if (!opFound && ifOp.hasElse()) {
         opFound = ifOp;
         return;
@@ -275,7 +275,7 @@ static void separateAffineIfBlocks(mlir::func::FuncOp f, OpBuilder &b) {
 
   Operation *op;
   while ((op = findIfWithElse(f)) != nullptr) {
-    mlir::AffineIfOp ifOp = dyn_cast<mlir::AffineIfOp>(op);
+    mlir::affine::AffineIfOp ifOp = dyn_cast<mlir::affine::AffineIfOp>(op);
     assert(ifOp.hasElse() && "The if op found should have an else block.");
 
     OpBuilder::InsertionGuard guard(b);
@@ -283,13 +283,13 @@ static void separateAffineIfBlocks(mlir::func::FuncOp f, OpBuilder &b) {
 
     // Here we create two new if operations, one for the then block, one for the
     // else block.
-    mlir::AffineIfOp newIfThenOp =
-        cast<mlir::AffineIfOp>(b.clone(*ifOp.getOperation()));
+    mlir::affine::AffineIfOp newIfThenOp =
+        cast<mlir::affine::AffineIfOp>(b.clone(*ifOp.getOperation()));
     newIfThenOp.getElseBlock()->erase(); // TODO: can we don't create it?
 
     b.setInsertionPointAfter(newIfThenOp);
-    mlir::AffineIfOp newIfElseOp =
-        cast<mlir::AffineIfOp>(b.clone(*ifOp.getOperation()));
+    mlir::affine::AffineIfOp newIfElseOp =
+        cast<mlir::affine::AffineIfOp>(b.clone(*ifOp.getOperation()));
 
     // Build new integer set.
     newIfElseOp.setConditional(getIntegerSetForElse(ifOp.getIntegerSet(), b),
@@ -779,8 +779,8 @@ createScratchpadAllocaOp(mlir::func::FuncOp f, mlir::Value spad,
     mlir::Value lb =
         b.create<mlir::AffineMinOp>(spad.getLoc(), lbMap, lbOperands);
     mlir::Value ub =
-        b.create<mlir::AffineMaxOp>(spad.getLoc(), ubMap, ubOperands);
-    mlir::Value size = b.create<mlir::AffineApplyOp>(
+        b.create<mlir::affine::AffineMaxOp>(spad.getLoc(), ubMap, ubOperands);
+    mlir::Value size = b.create<mlir::affine::AffineApplyOp>(
         spad.getLoc(),
         AffineMap::get(0, 2,
                        b.getAffineSymbolExpr(0) - b.getAffineSymbolExpr(1)),
@@ -812,7 +812,7 @@ static void resetLoadAndStoreOpsToScratchpad(mlir::func::FuncOp f, mlir::Value s
         llvm::SmallVector<mlir::Value, 4> lbOperands{
             forOp.value().getLowerBoundOperands()};
         mlir::Value lb =
-            b.create<mlir::AffineApplyOp>(op->getLoc(), lbMap, lbOperands);
+            b.create<mlir::affine::AffineApplyOp>(op->getLoc(), lbMap, lbOperands);
 
         indices[forOp.index()] = b.getAffineDimExpr(numOperands) -
                                  b.getAffineDimExpr(numOperands + 1);

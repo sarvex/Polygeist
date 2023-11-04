@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
   // Register MLIR stuff
   registry.insert<mlir::func::FuncDialect>();
-  registry.insert<mlir::AffineDialect>();
+  registry.insert<mlir::affine::AffineDialect>();
   registry.insert<mlir::scf::SCFDialect>();
   registry.insert<mlir::memref::MemRefDialect>();
   registry.insert<mlir::math::MathDialect>();

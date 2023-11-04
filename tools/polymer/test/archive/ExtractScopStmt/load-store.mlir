@@ -189,7 +189,7 @@ func @write_const(%A: memref<?xf32>) {
 
 // -----
 
-// AffineApplyOp result used in both loop bounds and load/store addresses
+// affine::AffineApplyOp result used in both loop bounds and load/store addresses
 // should be treated differently.
 
 #map0 = affine_map<(d0)[s0] -> (-d0 + s0 - 1)>

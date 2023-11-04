@@ -103,7 +103,7 @@ static Operation *apply(mlir::AffineMap affMap, ValueRange operands,
       newOperands[i] = b.create<arith::IndexCastOp>(
           call.getLoc(), b.getIndexType(), newOperands[i]);
 
-  return b.create<mlir::AffineApplyOp>(call.getLoc(), affMap, newOperands);
+  return b.create<mlir::affine::AffineApplyOp>(call.getLoc(), affMap, newOperands);
 }
 
 static void projectAllOutExcept(affine::FlatAffineValueConstraints &cst,
@@ -165,7 +165,7 @@ static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, Fun
     b.setInsertionPointAfterValue(
         findLastDefined(ValueRange({lbOp->getResult(0), ubOp->getResult(0)})));
 
-    Value size = b.create<mlir::AffineApplyOp>(
+    Value size = b.create<mlir::affine::AffineApplyOp>(
         forOps.back().getLoc(),
         mlir::AffineMap::get(
             0, 2, b.getAffineSymbolExpr(1) - b.getAffineSymbolExpr(0)),
@@ -234,9 +234,9 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, FuncOp f,
   SmallVector<Value, 4> addrs;
   for (int dim = 0; dim < numDims; dim++) {
     mlir::affine::AffineForOp curr = forOps[forOps.size() - numDims + dim];
-    Value lb = b.create<mlir::AffineApplyOp>(
+    Value lb = b.create<mlir::affine::AffineApplyOp>(
         op->getLoc(), curr.getLowerBoundMap(), curr.getLowerBoundOperands());
-    Value addr = b.create<mlir::AffineApplyOp>(
+    Value addr = b.create<mlir::affine::AffineApplyOp>(
         op->getLoc(),
         AffineMap::get(2, 0, b.getAffineDimExpr(0) - b.getAffineDimExpr(1)),
         ValueRange({curr.getInductionVar(), lb}));
@@ -637,7 +637,7 @@ static void unifyScratchpad(FuncOp f, ModuleOp m, OpBuilder &b) {
       dims.push_back(op.getOperand(d));
     }
 
-    Value maxDim = b.create<mlir::AffineMaxOp>(
+    Value maxDim = b.create<mlir::affine::AffineMaxOp>(
         dims.front().getLoc(), dims.front().getType(),
         b.getMultiDimIdentityMap(dims.size()), ValueRange(dims));
     maxDims.push_back(maxDim);

@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   auto processBuffer = [&](std::unique_ptr<llvm::MemoryBuffer> ownedBuffer,
                            raw_ostream &os) {
     MLIRContext context;
-    context.loadDialect<mlir::func::FuncDialect, mlir::AffineDialect,
+    context.loadDialect<mlir::func::FuncDialect, mlir::affine::AffineDialect,
                         mlir::scf::SCFDialect, mlir::LLVM::LLVMDialect>();
 
     // Nothing here is threaded.  Disable synchronization overhead.

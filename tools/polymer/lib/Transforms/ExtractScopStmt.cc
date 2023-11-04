@@ -235,7 +235,7 @@ static void getScopStmtOps(Operation *writeOp,
     // if we consume it in the callee, the affine::AffineValueMap built for the accesses
     // that use this dim cannot relate it with the global context.
     if (isa<memref::AllocaOp, memref::AllocOp, memref::DimOp,
-            mlir::AffineApplyOp>(op) ||
+            mlir::affine::AffineApplyOp>(op) ||
         (isa<mlir::arith::IndexCastOp>(op) &&
          op->getOperand(0).isa<BlockArgument>() &&
          isa<FuncOp>(op->getOperand(0)

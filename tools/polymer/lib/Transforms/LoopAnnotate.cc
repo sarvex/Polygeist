@@ -45,8 +45,8 @@ static void annotatePointLoops(ValueRange operands, OpBuilder &b) {
         forOp->setAttr("scop.point_loop", b.getUnitAttr());
       }
     } else {
-      mlir::AffineApplyOp applyOp =
-          operand.getDefiningOp<mlir::AffineApplyOp>();
+      mlir::affine::AffineApplyOp applyOp =
+          operand.getDefiningOp<mlir::affine::AffineApplyOp>();
       if (applyOp) {
         // Mark the parents of its operands, if a loop IVs, as point loops.
         annotatePointLoops(applyOp.getOperands(), b);
