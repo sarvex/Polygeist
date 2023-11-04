@@ -590,7 +590,7 @@ void Importer::initializeFuncOpInterface() {
   }
   // Create the function interface.
   func =
-      b.create<FuncOp>(sourceFuncOp.getLoc(), funcName, sourceFuncOp.getType());
+      b.create<FuncOp>(sourceFuncOp.getLoc(), funcName, sourceFuncOp.getFunctionType());
 
   // Initialize the symbol table for these entryBlock arguments
   auto &entryBlock = *func.addEntryBlock();
@@ -795,7 +795,7 @@ void Importer::createCalleeAndCallerArgs(
     }
   }
 
-  auto calleeType = b.getFunctionType(calleeArgTypes, llvm::None);
+  auto calleeType = b.getFunctionType(calleeArgTypes, {});
   // TODO: should we set insertion point for the callee before the main
   // function?
   b.setInsertionPoint(module.getBody(), getFuncInsertPt());

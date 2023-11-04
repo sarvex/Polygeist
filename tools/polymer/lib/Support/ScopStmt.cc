@@ -124,7 +124,7 @@ static void reorderSymbolsByOperandId(affine::FlatAffineValueConstraints &cst) {
 void ScopStmtImpl::initializeDomainAndEnclosingOps() {
   // Extract the affine for/if ops enclosing the caller and insert them into the
   // enclosingOps list.
-  affine::getEnclosingAffineForAndIfOps(*caller, &enclosingOps);
+  affine::getEnclosingAffineOps(*caller, &enclosingOps);
 
   // The domain constraints can then be collected from the enclosing ops.
   assert(succeeded(getIndexSet(enclosingOps, &domain)));

@@ -571,7 +571,7 @@ static void
 getEnclosingaffine::AffineForOps(mlir::Operation *op, mlir::Operation *topOp,
                          SmallVectorImpl<mlir::Operation *> &forOps) {
   SmallVector<mlir::Operation *, 4> forAndIfOps;
-  affine::getEnclosingAffineForAndIfOps(*op, &forAndIfOps);
+  affine::getEnclosingAffineOps(*op, &forAndIfOps);
 
   for (mlir::Operation *forOrIfOp : forAndIfOps) {
     if (forOrIfOp == topOp)
