@@ -8,8 +8,10 @@ ROOT_DIR="$1"
 
 echo BUILDING PLUTO IN DIR "$ROOT_DIR"
 
-if test -d "$ROOT_DIR"; then
-    exit
+if test -d "$ROOT_DIR/llvm"; then
+    if test -d "$ROOT_DIR/pluto"; then
+        exit
+    fi
 fi
 
 mkdir -p "$ROOT_DIR"
