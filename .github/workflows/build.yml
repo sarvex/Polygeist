@@ -51,7 +51,7 @@ jobs:
         key: ${{ matrix.build }}-${{ matrix.os }}-mlir-${{ steps.getversion.outputs.version }}
 
     - name: add dependencies
-      run: sudo apt-get install -y llvm-tools ninja-build libbison-dev libtool libgmp-dev #libflex-dev cmake binutils-gold binutils binutils-dev ${{ matrix.compiler }} ${{ matrix.linker-pkg }}
+      run: sudo apt-get install -y llvm-15-tools ninja-build libbison-dev libtool libgmp-dev #libflex-dev cmake binutils-gold binutils binutils-dev ${{ matrix.compiler }} ${{ matrix.linker-pkg }}
 
     - name: Pluto build
       if: steps.cache-pluto.outputs.cache-hit != 'true'
