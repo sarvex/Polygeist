@@ -54,7 +54,8 @@ public:
   /// that set. We calculate such a union by concatenating the constraints of
   /// domain defined by affine::FlatAffineValueConstraints.
   /// TODO: improve the interface.
-  mlir::LogicalResult getDomain(mlir::affine::FlatAffineValueConstraints &domain);
+  mlir::LogicalResult
+  getDomain(mlir::affine::FlatAffineValueConstraints &domain);
   mlir::LogicalResult
   getDomain(mlir::affine::FlatAffineValueConstraints &domain,
             SmallVectorImpl<mlir::Operation *> &enclosingOps);

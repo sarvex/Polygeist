@@ -24,7 +24,8 @@ using namespace polymer;
 void OslScopStmtOpSet::insert(mlir::Operation *op) {
   opSet.insert(op);
   if (isa<mlir::affine::AffineStoreOp>(op)) {
-    assert(!storeOp && "There should be only one affine::AffineStoreOp in the set.");
+    assert(!storeOp &&
+           "There should be only one affine::AffineStoreOp in the set.");
     storeOp = op;
   }
 }
@@ -55,7 +56,8 @@ OslScopStmtOpSet::getDomain(affine::FlatAffineValueConstraints &domain,
   return getIndexSet(enclosingOps, &domain);
 }
 
-LogicalResult OslScopStmtOpSet::getDomain(affine::FlatAffineValueConstraints &domain) {
+LogicalResult
+OslScopStmtOpSet::getDomain(affine::FlatAffineValueConstraints &domain) {
   SmallVector<Operation *, 8> enclosingOps;
   if (failed(getEnclosingOps(enclosingOps)))
     return failure();

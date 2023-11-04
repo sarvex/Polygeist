@@ -21,10 +21,10 @@
 #include "mlir/Dialect/Affine/LoopUtils.h"
 #include "mlir/Dialect/Affine/Utils.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/BuiltinTypes.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/Tools/mlir-translate/Translation.h"
 
@@ -198,9 +198,9 @@ void OslScopBuilder::buildScopStmtMap(mlir::func::FuncOp f,
   });
 }
 
-void OslScopBuilder::buildScopContext(OslScop *scop,
-                                      OslScop::ScopStmtMap *scopStmtMap,
-                                      affine::FlatAffineValueConstraints &ctx) const {
+void OslScopBuilder::buildScopContext(
+    OslScop *scop, OslScop::ScopStmtMap *scopStmtMap,
+    affine::FlatAffineValueConstraints &ctx) const {
   LLVM_DEBUG(dbgs() << "--- Building SCoP context ...\n");
 
   // First initialize the symbols of the ctx by the order of arg number.
@@ -437,5 +437,6 @@ static LogicalResult emitOpenScop(ModuleOp module, llvm::raw_ostream &os) {
 }
 
 void polymer::registerToOpenScopTranslation() {
-  static TranslateFromMLIRRegistration toOpenScop("export-scop", "Export SCOP", emitOpenScop);
+  static TranslateFromMLIRRegistration toOpenScop("export-scop", "Export SCOP",
+                                                  emitOpenScop);
 }

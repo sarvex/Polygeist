@@ -6,10 +6,10 @@
 //===----------------------------------------------------------------------===//
 #include "polymer/Target/OpenScop.h"
 
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
-#include "llvm/Support/CommandLine.h"
 
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -99,7 +99,8 @@ int main(int argc, char *argv[]) {
     // In the diagnostic verification flow, we ignore whether the translation
     // failed (in most cases, it is expected to fail). Instead, we check if the
     // diagnostics were produced as expected.
-    SourceMgrDiagnosticVerifierHandler sourceMgrHandler(*sourceMgr.get(), &context);
+    SourceMgrDiagnosticVerifierHandler sourceMgrHandler(*sourceMgr.get(),
+                                                        &context);
     (*translationRequested)(sourceMgr, os, &context);
     return sourceMgrHandler.verify();
   };

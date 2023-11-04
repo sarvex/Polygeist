@@ -13,9 +13,9 @@
 #include "mlir/Dialect/Affine/IR/AffineValueMap.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/IntegerSet.h"
 #include "mlir/IR/Operation.h"
 #include "mlir/Support/LogicalResult.h"
@@ -92,7 +92,8 @@ static BlockArgument findTopLevelBlockArgument(mlir::Value val) {
 }
 
 static void
-promoteSymbolToTopLevel(mlir::Value val, affine::FlatAffineValueConstraints &domain,
+promoteSymbolToTopLevel(mlir::Value val,
+                        affine::FlatAffineValueConstraints &domain,
                         llvm::DenseMap<mlir::Value, mlir::Value> &symMap) {
   BlockArgument arg = findTopLevelBlockArgument(val);
   assert(isa<mlir::func::FuncOp>(arg.getOwner()->getParentOp()) &&
@@ -217,7 +218,8 @@ void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
   // TODO: assert op is in the callee.
   affine::MemRefAccess access(op);
 
-  // Collect the access affine::AffineValueMap that binds to operands in the callee.
+  // Collect the access affine::AffineValueMap that binds to operands in the
+  // callee.
   affine::AffineValueMap aMap;
   access.getAccessMap(&aMap);
 

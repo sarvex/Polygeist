@@ -15,9 +15,9 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Types.h"
@@ -85,14 +85,14 @@ insertScratchpadForInterprocUses(mlir::Operation *defOp,
   mlir::Block &calleeEntryBlock = *callee.getBlocks().begin();
   mlir::BlockArgument scratchpad =
       calleeEntryBlock.addArgument(memrefType, b.getUnknownLoc());
-  callee.setType(b.getFunctionType(
-                     TypeRange(calleeEntryBlock.getArgumentTypes()), {}));
+  callee.setType(
+      b.getFunctionType(TypeRange(calleeEntryBlock.getArgumentTypes()), {}));
 
   // Store within the callee for the used value.
   b.setInsertionPointAfter(defInCalleeOp);
-  b.create<mlir::affine::AffineStoreOp>(allocaOp->getLoc(), defInCalleeOp->getResult(0),
-                                scratchpad, b.getConstantAffineMap(0),
-                                std::vector<mlir::Value>());
+  b.create<mlir::affine::AffineStoreOp>(
+      allocaOp->getLoc(), defInCalleeOp->getResult(0), scratchpad,
+      b.getConstantAffineMap(0), std::vector<mlir::Value>());
 
   // llvm::errs() << "Updated callee interface:\n";
   // callee.dump();
@@ -232,16 +232,16 @@ static void getScopStmtOps(Operation *writeOp,
     // these allocation op, i.e., memref, will be treated as input arguments to
     // the new statement function.
     // Also, we should leave the dim SSA value in the original scope. Otherwise,
-    // if we consume it in the callee, the affine::AffineValueMap built for the accesses
-    // that use this dim cannot relate it with the global context.
+    // if we consume it in the callee, the affine::AffineValueMap built for the
+    // accesses that use this dim cannot relate it with the global context.
     if (isa<memref::AllocaOp, memref::AllocOp, memref::DimOp,
             mlir::affine::AffineApplyOp>(op) ||
         (isa<mlir::arith::IndexCastOp>(op) &&
          op->getOperand(0).isa<BlockArgument>() &&
          isa<func::FuncOp>(op->getOperand(0)
-                         .cast<BlockArgument>()
-                         .getOwner()
-                         ->getParentOp()))) {
+                               .cast<BlockArgument>()
+                               .getOwner()
+                               ->getParentOp()))) {
       LLVM_DEBUG(dbgs() << " -> Hits a terminating operator.\n\n");
       for (mlir::Value result : op->getResults())
         args.insert(result);
@@ -285,11 +285,10 @@ static void getCalleeName(unsigned calleeId, CalleeName &calleeName,
 /// contents will be ops, and its type depends on the given list of args. This
 /// callee function has a single block in it, and it has no returned value. The
 /// callee will be inserted at the end of the whole module.
-static mlir::func::FuncOp createCallee(StringRef calleeName,
-                                 const llvm::SetVector<Operation *> &ops,
-                                 const llvm::SetVector<mlir::Value> &args,
-                                 mlir::ModuleOp m, Operation *writeOp,
-                                 OpToCalleeMap &opToCallee, OpBuilder &b) {
+static mlir::func::FuncOp
+createCallee(StringRef calleeName, const llvm::SetVector<Operation *> &ops,
+             const llvm::SetVector<mlir::Value> &args, mlir::ModuleOp m,
+             Operation *writeOp, OpToCalleeMap &opToCallee, OpBuilder &b) {
   assert(ops.contains(writeOp) && "writeOp should be a member in ops.");
 
   // unsigned numArgs = args.size();
@@ -485,9 +484,9 @@ static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
     b.setInsertionPointAfter(storeOp);
 
     affine::MemRefAccess access(storeOp);
-    mlir::affine::AffineLoadOp loadOp =
-        b.create<mlir::affine::AffineLoadOp>(storeOp.getLoc(), storeOp.getMemRef(),
-                                     storeOp.getAffineMap(), access.indices);
+    mlir::affine::AffineLoadOp loadOp = b.create<mlir::affine::AffineLoadOp>(
+        storeOp.getLoc(), storeOp.getMemRef(), storeOp.getAffineMap(),
+        access.indices);
 
     LLVM_DEBUG(dbgs() << " + Created load : \n\t" << loadOp
                       << "\n   immediately after the store: \n\t" << storeOp

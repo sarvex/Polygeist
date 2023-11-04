@@ -32,10 +32,10 @@ extern "C" {
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/Dominance.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/IntegerSet.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Tools/mlir-translate/Translation.h"
@@ -590,8 +590,8 @@ void Importer::initializeFuncOpInterface() {
     funcName = std::string(formatv("{0}_opt", sourceFuncName));
   }
   // Create the function interface.
-  func =
-      b.create<FuncOp>(sourceFuncOp.getLoc(), funcName, sourceFuncOp.getFunctionType());
+  func = b.create<FuncOp>(sourceFuncOp.getLoc(), funcName,
+                          sourceFuncOp.getFunctionType());
 
   // Initialize the symbol table for these entryBlock arguments
   auto &entryBlock = *func.addEntryBlock();
@@ -659,7 +659,8 @@ void Importer::initializeSymbol(mlir::Value val) {
 
   // First we examine the AST structure.
   mlir::Operation *parentOp = defOp->getParentOp();
-  if (mlir::affine::AffineForOp forOp = dyn_cast<mlir::affine::AffineForOp>(parentOp)) {
+  if (mlir::affine::AffineForOp forOp =
+          dyn_cast<mlir::affine::AffineForOp>(parentOp)) {
     mlir::Value srcIV = forOp.getInductionVar();
     std::string ivName = oslValueTable->lookup(srcIV);
     mlir::Value dstIV = symbolTable[ivName];
@@ -916,7 +917,7 @@ void Importer::getInductionVars(clast_user_stmt *userStmt, osl_body_p body,
                              substMap.getSingleConstantResult()));
       else
         op = b.create<mlir::affine::AffineApplyOp>(b.getUnknownLoc(), substMap,
-                                           substOperands);
+                                                   substOperands);
 
       inductionVars.push_back(op->getResult(0));
     } else {
@@ -1138,8 +1139,8 @@ LogicalResult Importer::processStmt(clast_guard *guardStmt) {
   IntegerSet iset = IntegerSet::get(builder.dimNames.size(),
                                     builder.symbolNames.size(), conds, eqFlags);
 
-  mlir::affine::AffineIfOp ifOp =
-      b.create<mlir::affine::AffineIfOp>(b.getUnknownLoc(), iset, operands, false);
+  mlir::affine::AffineIfOp ifOp = b.create<mlir::affine::AffineIfOp>(
+      b.getUnknownLoc(), iset, operands, false);
 
   Block *entryBlock = ifOp.getThenBlock();
   b.setInsertionPointToStart(entryBlock);
@@ -1221,8 +1222,8 @@ Importer::getAffineLoopBound(clast_expr *expr,
 
 /// Generate the affine::AffineForOp from a clast_for statement. First we create
 /// AffineMaps for the lower and upper bounds. Then we decide the step if
-/// there is any. And finally, we create the affine::AffineForOp instance and generate
-/// its body.
+/// there is any. And finally, we create the affine::AffineForOp instance and
+/// generate its body.
 LogicalResult Importer::processStmt(clast_for *forStmt) {
   // Get loop bounds.
   AffineMap lbMap, ubMap;
@@ -1272,7 +1273,8 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
 
   // Create the loop body
   b.setInsertionPointToStart(&entryBlock);
-  entryBlock.walk([&](mlir::affine::AffineYieldOp op) { b.setInsertionPoint(op); });
+  entryBlock.walk(
+      [&](mlir::affine::AffineYieldOp op) { b.setInsertionPoint(op); });
   assert(processStmtList(forStmt->body).succeeded());
   b.setInsertionPointAfter(forOp);
 
@@ -1287,8 +1289,8 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
   // Finally, we will move this affine.for op into a FuncOp if it uses values
   // defined by affine.min/max as loop bound operands.
   auto isMinMaxDefined = [](mlir::Value operand) {
-    return isa_and_nonnull<mlir::affine::AffineMaxOp, mlir::affine::AffineMinOp>(
-        operand.getDefiningOp());
+    return isa_and_nonnull<mlir::affine::AffineMaxOp,
+                           mlir::affine::AffineMinOp>(operand.getDefiningOp());
   };
 
   if (std::none_of(lbOperands.begin(), lbOperands.end(), isMinMaxDefined) &&
@@ -1351,7 +1353,7 @@ LogicalResult Importer::processStmt(clast_assignment *ass) {
         b.getIntegerAttr(b.getIndexType(), substMap.getSingleConstantResult()));
   } else if (substMap.getNumResults() == 1) {
     op = b.create<mlir::affine::AffineApplyOp>(b.getUnknownLoc(), substMap,
-                                       substOperands);
+                                               substOperands);
   } else {
     assert(ass->RHS->type == clast_expr_red);
     clast_reduction *red = reinterpret_cast<clast_reduction *>(ass->RHS);
@@ -1359,10 +1361,10 @@ LogicalResult Importer::processStmt(clast_assignment *ass) {
     assert(red->type != clast_red_sum);
     if (red->type == clast_red_max)
       op = b.create<mlir::affine::AffineMaxOp>(b.getUnknownLoc(), substMap,
-                                       substOperands);
+                                               substOperands);
     else
       op = b.create<mlir::affine::AffineMinOp>(b.getUnknownLoc(), substMap,
-                                       substOperands);
+                                               substOperands);
   }
 
   assert(op->getNumResults() == 1);
@@ -1567,7 +1569,8 @@ namespace polymer {
 
 void registerFromOpenScopTranslation() {
   TranslateToMLIRRegistration fromLLVM(
-      "import-scop", "Import SCOP", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
+      "import-scop", "Import SCOP",
+      [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
         return ::translateOpenScopToModule(sourceMgr, context);
       });
 }

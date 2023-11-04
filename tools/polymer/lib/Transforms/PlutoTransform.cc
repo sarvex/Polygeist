@@ -22,8 +22,8 @@
 #include "mlir/Dialect/Affine/IR/AffineValueMap.h"
 #include "mlir/Dialect/Affine/Utils.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Types.h"
@@ -69,11 +69,11 @@ struct PlutoOptPipelineOptions
 
 /// The main function that implements the Pluto based optimization.
 /// TODO: transform options?
-static mlir::func::FuncOp plutoTransform(mlir::func::FuncOp f, OpBuilder &rewriter,
-                                   std::string dumpClastAfterPluto,
-                                   bool parallelize = false, bool debug = false,
-                                   int cloogf = -1, int cloogl = -1,
-                                   bool diamondTiling = false) {
+static mlir::func::FuncOp
+plutoTransform(mlir::func::FuncOp f, OpBuilder &rewriter,
+               std::string dumpClastAfterPluto, bool parallelize = false,
+               bool debug = false, int cloogf = -1, int cloogl = -1,
+               bool diamondTiling = false) {
   LLVM_DEBUG(dbgs() << "Pluto transforming: \n");
   LLVM_DEBUG(f.dump());
 
@@ -222,9 +222,10 @@ static void plutoParallelize(mlir::affine::AffineForOp forOp, OpBuilder b) {
   ValueRange upperBoundOperands = forOp.getUpperBoundOperands();
 
   // Creating empty 1-D affine.parallel op.
-  mlir::affine::AffineParallelOp newPloop = b.create<mlir::affine::AffineParallelOp>(
-      loc, TypeRange(), ArrayRef<arith::AtomicRMWKind>(), lowerBoundMap, lowerBoundOperands,
-      upperBoundMap, upperBoundOperands, 1);
+  mlir::affine::AffineParallelOp newPloop =
+      b.create<mlir::affine::AffineParallelOp>(
+          loc, TypeRange(), ArrayRef<arith::AtomicRMWKind>(), lowerBoundMap,
+          lowerBoundOperands, upperBoundMap, upperBoundOperands, 1);
   // Steal the body of the old affine for op and erase it.
   newPloop.getRegion().takeBody(forOp.getRegion());
 
@@ -237,7 +238,8 @@ static void plutoParallelize(mlir::affine::AffineForOp forOp, OpBuilder b) {
 /// Need to check whether the bounds of the for loop are using top-level values
 /// as operands. If not, then the loop cannot be directly turned into
 /// affine.parallel.
-static bool isBoundParallelizable(mlir::affine::AffineForOp forOp, bool isUpper) {
+static bool isBoundParallelizable(mlir::affine::AffineForOp forOp,
+                                  bool isUpper) {
   llvm::SmallVector<mlir::Value, 4> mapOperands =
       isUpper ? forOp.getUpperBoundOperands() : forOp.getLowerBoundOperands();
 

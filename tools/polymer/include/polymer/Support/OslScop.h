@@ -28,7 +28,7 @@ namespace mlir {
 namespace affine {
 class AffineValueMap;
 class FlatAffineValueConstraints;
-}
+} // namespace affine
 struct LogicalResult;
 class Operation;
 class Value;
@@ -86,9 +86,11 @@ public:
   /// Add the relation defined by cst to the context of the current scop.
   void addContextRelation(mlir::affine::FlatAffineValueConstraints cst);
   /// Add the domain relation.
-  void addDomainRelation(int stmtId, mlir::affine::FlatAffineValueConstraints &cst);
+  void addDomainRelation(int stmtId,
+                         mlir::affine::FlatAffineValueConstraints &cst);
   /// Add the scattering relation.
-  void addScatteringRelation(int stmtId, mlir::affine::FlatAffineValueConstraints &cst,
+  void addScatteringRelation(int stmtId,
+                             mlir::affine::FlatAffineValueConstraints &cst,
                              llvm::ArrayRef<mlir::Operation *> ops);
   /// Add the access relation.
   void addAccessRelation(int stmtId, bool isRead, mlir::Value memref,
@@ -141,10 +143,10 @@ private:
                             bool isEq = true);
 
   /// Create access relation constraints.
-  void
-  createAccessRelationConstraints(mlir::affine::AffineValueMap &vMap,
-                                  mlir::affine::FlatAffineValueConstraints &cst,
-                                  mlir::affine::FlatAffineValueConstraints &domain);
+  void createAccessRelationConstraints(
+      mlir::affine::AffineValueMap &vMap,
+      mlir::affine::FlatAffineValueConstraints &cst,
+      mlir::affine::FlatAffineValueConstraints &domain);
 
   void addArraysExtension();
   void addScatnamesExtension();

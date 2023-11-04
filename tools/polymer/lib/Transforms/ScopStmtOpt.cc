@@ -12,9 +12,9 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/OpImplementation.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Types.h"
@@ -103,7 +103,8 @@ static Operation *apply(mlir::AffineMap affMap, ValueRange operands,
       newOperands[i] = b.create<arith::IndexCastOp>(
           call.getLoc(), b.getIndexType(), newOperands[i]);
 
-  return b.create<mlir::affine::AffineApplyOp>(call.getLoc(), affMap, newOperands);
+  return b.create<mlir::affine::AffineApplyOp>(call.getLoc(), affMap,
+                                               newOperands);
 }
 
 static void projectAllOutExcept(affine::FlatAffineValueConstraints &cst,
@@ -120,8 +121,8 @@ static void projectAllOutExcept(affine::FlatAffineValueConstraints &cst,
 /// memref.alloc function is being called.
 /// The memref will have the same iteration domain as the `numDims` innermost
 /// forOps. `numDims` specifies the dimensions of the target memref.
-static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, func::FuncOp f,
-                          mlir::func::CallOp call, int numDims,
+static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps,
+                          func::FuncOp f, mlir::func::CallOp call, int numDims,
                           SmallVectorImpl<Value> &dims, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
 
@@ -145,12 +146,13 @@ static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, fun
   mapping.map(f.getArguments(), call.getOperands());
 
   SmallVector<mlir::Value, 4> mapOperands;
-  cst.getValues(cst.getNumDimVars(), cst.getNumDimAndSymbolVars(), &mapOperands);
+  cst.getValues(cst.getNumDimVars(), cst.getNumDimAndSymbolVars(),
+                &mapOperands);
 
   for (int dim = 0; dim < numDims; dim++) {
     mlir::AffineMap lbMap, ubMap;
-    std::tie(lbMap, ubMap) = cst.getLowerAndUpperBound(
-        dim, 0, numDims, numDims, {}, b.getContext());
+    std::tie(lbMap, ubMap) =
+        cst.getLowerAndUpperBound(dim, 0, numDims, numDims, {}, b.getContext());
 
     // mlir::AffineMap lbMap = forOp.getLowerBoundMap();
     // mlir::AffineMap ubMap = forOp.getUpperBoundMap();
@@ -176,8 +178,8 @@ static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, fun
 
 /// Append the given argument to the end of the argument list for both the
 /// function and the caller.
-static Value appendArgument(Value arg, func::FuncOp func, mlir::func::CallOp call,
-                            OpBuilder &b) {
+static Value appendArgument(Value arg, func::FuncOp func,
+                            mlir::func::CallOp call, OpBuilder &b) {
   SmallVector<Type, 4> argTypes;
   SmallVector<Value, 4> operands;
   for (Type type : func.getArgumentTypes())
@@ -248,14 +250,15 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, func::FuncOp f,
   op->replaceAllUsesWith(loadOp);
 
   b.setInsertionPointAfterValue(addrs.back());
-  b.create<mlir::affine::AffineStoreOp>(op->getLoc(), op->getResult(0), scrInFunc,
-                                addrs);
+  b.create<mlir::affine::AffineStoreOp>(op->getLoc(), op->getResult(0),
+                                        scrInFunc, addrs);
 }
 
 /// Find the target function and the op to split within it.
 /// The operation to be returned is the matched one for splitting. `parentFunc`
 /// will be set as the parent of the returned operation as well.
-static Operation *findToSplitStmt(ModuleOp m, func::FuncOp &parentFunc, int toSplit) {
+static Operation *findToSplitStmt(ModuleOp m, func::FuncOp &parentFunc,
+                                  int toSplit) {
   Operation *opToSplit;
 
   bool found = false;
@@ -295,7 +298,7 @@ static mlir::func::CallOp findCallOpForFunc(ModuleOp m, func::FuncOp func) {
 }
 
 static void scopStmtSplit(ModuleOp m, OpBuilder &b, int toSplit) {
-  func::FuncOp func;             // where the statement to split is located in.
+  func::FuncOp func;       // where the statement to split is located in.
   mlir::func::CallOp call; // the corresponding call to `func`.
   Operation *opToSplit;
 
@@ -416,7 +419,8 @@ struct RewriteScratchpadTypePass
           valueMap[elem.index()] = source;
         }
 
-      func::FuncOp callee = cast<func::FuncOp>(m.lookupSymbol(caller.getCallee()));
+      func::FuncOp callee =
+          cast<func::FuncOp>(m.lookupSymbol(caller.getCallee()));
       Block &entryBlock = callee.getBlocks().front();
 
       // Update entry block argument types.
@@ -707,8 +711,9 @@ struct UnifyScratchpadPass
 };
 } // namespace
 
-static void findAccessPatterns(Operation *op,
-                               SmallVectorImpl<mlir::affine::MemRefAccess> &accesses) {
+static void
+findAccessPatterns(Operation *op,
+                   SmallVectorImpl<mlir::affine::MemRefAccess> &accesses) {
   std::queue<Operation *> worklist;
   SmallPtrSet<Operation *, 8> visited;
   worklist.push(op);
@@ -717,7 +722,8 @@ static void findAccessPatterns(Operation *op,
     Operation *curr = worklist.front();
     worklist.pop();
 
-    if (mlir::affine::AffineLoadOp loadOp = dyn_cast<mlir::affine::AffineLoadOp>(curr)) {
+    if (mlir::affine::AffineLoadOp loadOp =
+            dyn_cast<mlir::affine::AffineLoadOp>(curr)) {
       std::vector<Value> ivs;
       OperandRange mapOperands = loadOp.getMapOperands();
       std::copy(mapOperands.begin(), mapOperands.end(),
@@ -738,7 +744,8 @@ static void findAccessPatterns(Operation *op,
   }
 }
 
-static bool hasAdjacentInnermostLoop(ArrayRef<mlir::affine::AffineForOp> forOps) {
+static bool
+hasAdjacentInnermostLoop(ArrayRef<mlir::affine::AffineForOp> forOps) {
   if (forOps.size() < 2)
     return false;
 
@@ -780,8 +787,9 @@ static bool satisfySplitHeuristic(mlir::affine::AffineStoreOp op) {
     return false;
 
   SmallVector<mlir::Value, 4> ivs(forOps.size());
-  std::transform(forOps.begin(), forOps.end(), ivs.begin(),
-                 [](mlir::affine::AffineForOp op) { return op.getInductionVar(); });
+  std::transform(
+      forOps.begin(), forOps.end(), ivs.begin(),
+      [](mlir::affine::AffineForOp op) { return op.getInductionVar(); });
 
   // Check if the innermost loop index is being accessed by the store op (LHS).
   for (Value idx : op.getMapOperands())
@@ -847,8 +855,8 @@ static bool satisfySplitHeuristic(mlir::affine::AffineStoreOp op) {
   return numSets >= 2;
 }
 
-int64_t annotateSplitId(mlir::affine::AffineStoreOp op, int64_t startId, OpBuilder &b,
-                        int targetDepth = 2) {
+int64_t annotateSplitId(mlir::affine::AffineStoreOp op, int64_t startId,
+                        OpBuilder &b, int targetDepth = 2) {
   std::queue<std::pair<Operation *, int>> worklist;
   SmallPtrSet<Operation *, 4> visited;
 
