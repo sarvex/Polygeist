@@ -568,15 +568,15 @@ void OslScop::createConstraintRows(affine::FlatAffineValueConstraints &cst,
 
     // Dims stay at the same positions.
     for (unsigned j = 0; j < numDimIds; j++)
-      rows[i * numCols + j] = row[j];
+      rows[i * numCols + j] = (int64_t)row[j];
     // Output local ids before symbols.
     for (unsigned j = 0; j < numLocalIds; j++)
-      rows[i * numCols + j + numDimIds] = row[j + numDimIds + numSymbolIds];
+      rows[i * numCols + j + numDimIds] = (int64_t)row[j + numDimIds + numSymbolIds];
     // Output symbols in the end.
     for (unsigned j = 0; j < numSymbolIds; j++)
-      rows[i * numCols + j + numDimIds + numLocalIds] = row[j + numDimIds];
+      rows[i * numCols + j + numDimIds + numLocalIds] = (int64_t)row[j + numDimIds];
     // Finally outputs the constant.
-    rows[i * numCols + numCols - 1] = row[numCols - 1];
+    rows[i * numCols + numCols - 1] = (int64_t)row[numCols - 1];
   }
 }
 
