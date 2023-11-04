@@ -191,9 +191,9 @@ public:
 // -------------------------- PlutoParallelizePass ----------------------------
 
 /// Find a single affine.for with scop.parallelizable attr.
-static mlir::AffineForOp findParallelizableLoop(mlir::func::FuncOp f) {
-  mlir::AffineForOp ret = nullptr;
-  f.walk([&ret](mlir::AffineForOp forOp) {
+static mlir::affine::AffineForOp findParallelizableLoop(mlir::func::FuncOp f) {
+  mlir::affine::AffineForOp ret = nullptr;
+  f.walk([&ret](mlir::affine::AffineForOp forOp) {
     if (!ret && forOp->hasAttr("scop.parallelizable"))
       ret = forOp;
   });
@@ -206,7 +206,7 @@ static mlir::AffineForOp findParallelizableLoop(mlir::func::FuncOp f) {
 ///
 /// 1. It is not necessary to check whether the parentOp of a parallelizable
 /// affine.for has the AffineScop trait.
-static void plutoParallelize(mlir::AffineForOp forOp, OpBuilder b) {
+static void plutoParallelize(mlir::affine::AffineForOp forOp, OpBuilder b) {
   assert(forOp->hasAttr("scop.parallelizable"));
 
   OpBuilder::InsertionGuard guard(b);
@@ -237,7 +237,7 @@ static void plutoParallelize(mlir::AffineForOp forOp, OpBuilder b) {
 /// Need to check whether the bounds of the for loop are using top-level values
 /// as operands. If not, then the loop cannot be directly turned into
 /// affine.parallel.
-static bool isBoundParallelizable(mlir::AffineForOp forOp, bool isUpper) {
+static bool isBoundParallelizable(mlir::affine::AffineForOp forOp, bool isUpper) {
   llvm::SmallVector<mlir::Value, 4> mapOperands =
       isUpper ? forOp.getUpperBoundOperands() : forOp.getLowerBoundOperands();
 
@@ -246,7 +246,7 @@ static bool isBoundParallelizable(mlir::AffineForOp forOp, bool isUpper) {
       return false;
   return true;
 }
-static bool isBoundParallelizable(mlir::AffineForOp forOp) {
+static bool isBoundParallelizable(mlir::affine::AffineForOp forOp) {
   return isBoundParallelizable(forOp, true) &&
          isBoundParallelizable(forOp, false);
 }
@@ -254,7 +254,7 @@ static bool isBoundParallelizable(mlir::AffineForOp forOp) {
 /// Iteratively replace affine.for with scop.parallelizable with
 /// affine.parallel.
 static void plutoParallelize(mlir::func::FuncOp f, OpBuilder b) {
-  mlir::AffineForOp forOp = nullptr;
+  mlir::affine::AffineForOp forOp = nullptr;
   while ((forOp = findParallelizableLoop(f)) != nullptr) {
     if (!isBoundParallelizable(forOp))
       llvm_unreachable(

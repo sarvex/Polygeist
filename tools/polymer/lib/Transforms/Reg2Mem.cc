@@ -55,7 +55,7 @@ static void mapDefToUses(mlir::func::FuncOp f, DefToUsesMap &defToUses) {
         !useOp->hasTrait<mlir::OpTrait::HasRecursiveSideEffects>())
       return;
     // Should filter out for and if ops.
-    if (isa<mlir::AffineForOp, mlir::AffineIfOp>(useOp))
+    if (isa<mlir::affine::AffineForOp, mlir::AffineIfOp>(useOp))
       return;
 
     // Assuming the def-use chain is acyclic.
@@ -406,14 +406,14 @@ using IterArgToMemMap = llvm::MapVector<mlir::Value, mlir::Value>;
 }
 
 static void findReductionLoops(mlir::func::FuncOp f,
-                               SmallVectorImpl<mlir::AffineForOp> &forOps) {
-  f.walk([&](mlir::AffineForOp forOp) {
+                               SmallVectorImpl<mlir::affine::AffineForOp> &forOps) {
+  f.walk([&](mlir::affine::AffineForOp forOp) {
     if (!forOp.getIterOperands().empty())
       forOps.push_back(forOp);
   });
 }
 
-static mlir::AffineYieldOp findYieldOp(mlir::AffineForOp forOp) {
+static mlir::AffineYieldOp findYieldOp(mlir::affine::AffineForOp forOp) {
   mlir::Operation *retOp;
   forOp.walk([&](mlir::AffineYieldOp yieldOp) { retOp = yieldOp; });
 
@@ -425,7 +425,7 @@ static mlir::AffineYieldOp findYieldOp(mlir::AffineForOp forOp) {
 
 static mlir::Value createIterScratchpad(mlir::Value iterArg,
                                         IterArgToMemMap &iterArgToMem,
-                                        mlir::AffineForOp forOp, OpBuilder &b) {
+                                        mlir::affine::AffineForOp forOp, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPoint(forOp);
 
@@ -440,7 +440,7 @@ static mlir::Value createIterScratchpad(mlir::Value iterArg,
 }
 
 static void storeInitValue(mlir::Value initVal, mlir::Value spad,
-                           mlir::AffineForOp forOp, OpBuilder &b) {
+                           mlir::affine::AffineForOp forOp, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfterValue(spad);
   b.create<mlir::AffineStoreOp>(spad.getLoc(), initVal, spad,
@@ -449,7 +449,7 @@ static void storeInitValue(mlir::Value initVal, mlir::Value spad,
 
 static mlir::Value loadIterArg(mlir::Value iterArg,
                                IterArgToMemMap &iterArgToMem,
-                               mlir::AffineForOp forOp, OpBuilder &b) {
+                               mlir::affine::AffineForOp forOp, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointToStart(forOp.getBody());
 
@@ -471,7 +471,7 @@ static void storeIterArg(int idx, mlir::Value spad, mlir::AffineYieldOp yieldOp,
                                 b.getConstantAffineMap(0), llvm::None);
 }
 
-static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::AffineForOp forOp,
+static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::affine::AffineForOp forOp,
                                     OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfter(forOp);
@@ -480,18 +480,18 @@ static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::AffineForOp forOp,
                                       b.getConstantAffineMap(0), llvm::None);
 }
 
-static void replaceResult(int idx, mlir::AffineForOp forOp,
+static void replaceResult(int idx, mlir::affine::AffineForOp forOp,
                           mlir::Value retVal) {
   mlir::Value origRetVal = forOp.getResult(idx);
   origRetVal.replaceAllUsesWith(retVal);
 }
 
-static mlir::AffineForOp cloneAffineForWithoutIterArgs(mlir::AffineForOp forOp,
+static mlir::affine::AffineForOp cloneAffineForWithoutIterArgs(mlir::affine::AffineForOp forOp,
                                                        OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfter(forOp);
 
-  mlir::AffineForOp newForOp = b.create<mlir::AffineForOp>(
+  mlir::affine::AffineForOp newForOp = b.create<mlir::affine::AffineForOp>(
       forOp.getLoc(), forOp.getLowerBoundOperands(), forOp.getLowerBoundMap(),
       forOp.getUpperBoundOperands(), forOp.getUpperBoundMap(), forOp.getStep());
 
@@ -507,7 +507,7 @@ static mlir::AffineForOp cloneAffineForWithoutIterArgs(mlir::AffineForOp forOp,
   return newForOp;
 }
 
-static void demoteLoopReduction(mlir::func::FuncOp f, mlir::AffineForOp forOp,
+static void demoteLoopReduction(mlir::func::FuncOp f, mlir::affine::AffineForOp forOp,
                                 OpBuilder &b) {
   SmallVector<mlir::Value, 4> initVals{forOp.getIterOperands()};
   mlir::Block *body = forOp.getBody();
@@ -534,10 +534,10 @@ static void demoteLoopReduction(mlir::func::FuncOp f, mlir::AffineForOp forOp,
 }
 
 static void demoteLoopReduction(mlir::func::FuncOp f, OpBuilder &b) {
-  SmallVector<mlir::AffineForOp, 4> forOps;
+  SmallVector<mlir::affine::AffineForOp, 4> forOps;
   findReductionLoops(f, forOps);
 
-  for (mlir::AffineForOp forOp : forOps)
+  for (mlir::affine::AffineForOp forOp : forOps)
     demoteLoopReduction(f, forOp, b);
 }
 
@@ -568,7 +568,7 @@ static void findAllScratchpads(mlir::func::FuncOp f,
 }
 
 static void
-getEnclosingAffineForOps(mlir::Operation *op, mlir::Operation *topOp,
+getEnclosingaffine::AffineForOps(mlir::Operation *op, mlir::Operation *topOp,
                          SmallVectorImpl<mlir::Operation *> &forOps) {
   SmallVector<mlir::Operation *, 4> forAndIfOps;
   getEnclosingAffineForAndIfOps(*op, &forAndIfOps);
@@ -576,7 +576,7 @@ getEnclosingAffineForOps(mlir::Operation *op, mlir::Operation *topOp,
   for (mlir::Operation *forOrIfOp : forAndIfOps) {
     if (forOrIfOp == topOp)
       break;
-    if (isa<mlir::AffineForOp>(forOrIfOp))
+    if (isa<mlir::affine::AffineForOp>(forOrIfOp))
       forOps.push_back(forOrIfOp);
   }
 }
@@ -592,7 +592,7 @@ static void getScratchpadIterDomains(
     parentVisited.insert(parent);
 
     SmallVector<mlir::Operation *, 4> forOps;
-    getEnclosingAffineForOps(user, spad.getParentBlock()->getParentOp(),
+    getEnclosingaffine::AffineForOps(user, spad.getParentBlock()->getParentOp(),
                              forOps);
 
     affine::FlatAffineValueConstraints domain;
@@ -797,7 +797,7 @@ static void resetLoadAndStoreOpsToScratchpad(mlir::func::FuncOp f, mlir::Value s
 
   for (mlir::Operation *op : spad.getUsers()) {
     if (isa<mlir::AffineLoadOp, mlir::AffineStoreOp>(op)) {
-      llvm::SmallVector<mlir::AffineForOp, 4> forOps;
+      llvm::SmallVector<mlir::affine::AffineForOp, 4> forOps;
       getLoopIVs(*op, &forOps);
 
       mlir::MemRefType memRefType = spad.getType().cast<mlir::MemRefType>();

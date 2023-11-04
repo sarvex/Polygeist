@@ -34,14 +34,14 @@ using namespace polymer;
 /// Check if the provided function has point loops in it.
 static bool hasPointLoops(FuncOp f) {
   bool hasPointLoop = false;
-  f.walk([&](mlir::AffineForOp forOp) {
+  f.walk([&](mlir::affine::AffineForOp forOp) {
     if (!hasPointLoop)
       hasPointLoop = forOp->hasAttr("scop.point_loop");
   });
   return hasPointLoop;
 }
 
-static bool isPointLoop(mlir::AffineForOp forOp) {
+static bool isPointLoop(mlir::affine::AffineForOp forOp) {
   return forOp->hasAttr("scop.point_loop");
 }
 
@@ -68,7 +68,7 @@ static void getArgs(Operation *parentOp, llvm::SetVector<Value> &args) {
   });
 }
 
-static FuncOp createCallee(mlir::AffineForOp forOp, int id, FuncOp f,
+static FuncOp createCallee(mlir::affine::AffineForOp forOp, int id, FuncOp f,
                            OpBuilder &b) {
   ModuleOp m = f->getParentOfType<ModuleOp>();
   OpBuilder::InsertionGuard guard(b);
@@ -116,7 +116,7 @@ static int extractPointLoops(FuncOp f, int startId, OpBuilder &b) {
   llvm::SetVector<Operation *> extracted;
 
   for (Operation *caller : callers) {
-    SmallVector<mlir::AffineForOp, 4> forOps;
+    SmallVector<mlir::affine::AffineForOp, 4> forOps;
     getLoopIVs(*caller, &forOps);
 
     int pointBandStart = forOps.size();
@@ -128,7 +128,7 @@ static int extractPointLoops(FuncOp f, int startId, OpBuilder &b) {
     if (static_cast<size_t>(pointBandStart) == forOps.size())
       continue;
 
-    mlir::AffineForOp pointBandStartLoop = forOps[pointBandStart];
+    mlir::affine::AffineForOp pointBandStartLoop = forOps[pointBandStart];
 
     // Already visited.
     if (extracted.contains(pointBandStartLoop))

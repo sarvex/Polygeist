@@ -444,7 +444,7 @@ void OslScop::addBodyExtension(int stmtId, const ScopStmt &stmt) {
 
   llvm::DenseMap<mlir::Value, unsigned> ivToId;
   for (unsigned i = 0; i < numIVs; i++) {
-    mlir::AffineForOp forOp = cast<mlir::AffineForOp>(forOps[i]);
+    mlir::affine::AffineForOp forOp = cast<mlir::affine::AffineForOp>(forOps[i]);
     // forOp.dump();
     ivToId[forOp.getInductionVar()] = i;
   }

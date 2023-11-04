@@ -120,7 +120,7 @@ static void projectAllOutExcept(affine::FlatAffineValueConstraints &cst,
 /// memref.alloc function is being called.
 /// The memref will have the same iteration domain as the `numDims` innermost
 /// forOps. `numDims` specifies the dimensions of the target memref.
-static void getMemRefSize(MutableArrayRef<mlir::AffineForOp> forOps, FuncOp f,
+static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, FuncOp f,
                           mlir::func::CallOp call, int numDims,
                           SmallVectorImpl<Value> &dims, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
@@ -200,7 +200,7 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, FuncOp f,
                           mlir::func::CallOp call, Operation *op) {
   LLVM_DEBUG(op->dump());
 
-  SmallVector<mlir::AffineForOp, 4> forOps;
+  SmallVector<mlir::affine::AffineForOp, 4> forOps;
   getLoopIVs(*op, &forOps);
 
   // If the target operation is very deeply nested (level >= 3), we build a
@@ -209,7 +209,7 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, FuncOp f,
   int numDims = forOps.size() >= 3 ? forOps.size() - 2 : 1;
 
   // For now we focus on the innermost for loop.
-  mlir::AffineForOp forOp = forOps.back();
+  mlir::affine::AffineForOp forOp = forOps.back();
   // forOp.dump();
 
   SmallVector<mlir::Value, 4> memSizes;
@@ -233,7 +233,7 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, FuncOp f,
 
   SmallVector<Value, 4> addrs;
   for (int dim = 0; dim < numDims; dim++) {
-    mlir::AffineForOp curr = forOps[forOps.size() - numDims + dim];
+    mlir::affine::AffineForOp curr = forOps[forOps.size() - numDims + dim];
     Value lb = b.create<mlir::AffineApplyOp>(
         op->getLoc(), curr.getLowerBoundMap(), curr.getLowerBoundOperands());
     Value addr = b.create<mlir::AffineApplyOp>(
@@ -506,14 +506,14 @@ static bool isSplittable(Operation *op) {
   if (isa<mlir::arith::SIToFPOp>(op))
     return false;
 
-  SmallVector<mlir::AffineForOp, 4> forOps;
+  SmallVector<mlir::affine::AffineForOp, 4> forOps;
   getLoopIVs(*op, &forOps);
 
   if (forOps.size() < 1)
     return false;
 
   // For now we focus on the innermost for loop.
-  mlir::AffineForOp forOp = forOps.back();
+  mlir::affine::AffineForOp forOp = forOps.back();
   mlir::AffineMap lbMap = forOp.getLowerBoundMap();
   mlir::AffineMap ubMap = forOp.getUpperBoundMap();
   if (lbMap.getNumDims() != 0 && lbMap.getNumResults() == 1)
@@ -736,15 +736,15 @@ static void findAccessPatterns(Operation *op,
   }
 }
 
-static bool hasAdjacentInnermostLoop(ArrayRef<mlir::AffineForOp> forOps) {
+static bool hasAdjacentInnermostLoop(ArrayRef<mlir::affine::AffineForOp> forOps) {
   if (forOps.size() < 2)
     return false;
 
-  mlir::AffineForOp innermost = forOps.back();
-  mlir::AffineForOp parent = forOps[forOps.size() - 2];
+  mlir::affine::AffineForOp innermost = forOps.back();
+  mlir::affine::AffineForOp parent = forOps[forOps.size() - 2];
 
   bool hasAdjacent = false;
-  parent.getBody()->walk([&](mlir::AffineForOp op) {
+  parent.getBody()->walk([&](mlir::affine::AffineForOp op) {
     if (op != innermost) {
       hasAdjacent = true;
       return;
@@ -769,7 +769,7 @@ static bool setEqual(ValueRange a, ValueRange b) {
 
 static bool satisfySplitHeuristic(mlir::AffineStoreOp op) {
   // Get the enclosing loop IVs.
-  SmallVector<mlir::AffineForOp, 4> forOps;
+  SmallVector<mlir::affine::AffineForOp, 4> forOps;
   getLoopIVs(*op.getOperation(), &forOps);
 
   if (forOps.size() < 3)
@@ -779,7 +779,7 @@ static bool satisfySplitHeuristic(mlir::AffineStoreOp op) {
 
   SmallVector<mlir::Value, 4> ivs(forOps.size());
   std::transform(forOps.begin(), forOps.end(), ivs.begin(),
-                 [](mlir::AffineForOp op) { return op.getInductionVar(); });
+                 [](mlir::affine::AffineForOp op) { return op.getInductionVar(); });
 
   // Check if the innermost loop index is being accessed by the store op (LHS).
   for (Value idx : op.getMapOperands())

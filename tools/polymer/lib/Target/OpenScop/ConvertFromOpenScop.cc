@@ -658,7 +658,7 @@ void Importer::initializeSymbol(mlir::Value val) {
 
   // First we examine the AST structure.
   mlir::Operation *parentOp = defOp->getParentOp();
-  if (mlir::AffineForOp forOp = dyn_cast<mlir::AffineForOp>(parentOp)) {
+  if (mlir::affine::AffineForOp forOp = dyn_cast<mlir::affine::AffineForOp>(parentOp)) {
     mlir::Value srcIV = forOp.getInductionVar();
     std::string ivName = oslValueTable->lookup(srcIV);
     mlir::Value dstIV = symbolTable[ivName];
@@ -1218,9 +1218,9 @@ Importer::getAffineLoopBound(clast_expr *expr,
   return success();
 }
 
-/// Generate the AffineForOp from a clast_for statement. First we create
+/// Generate the affine::AffineForOp from a clast_for statement. First we create
 /// AffineMaps for the lower and upper bounds. Then we decide the step if
-/// there is any. And finally, we create the AffineForOp instance and generate
+/// there is any. And finally, we create the affine::AffineForOp instance and generate
 /// its body.
 LogicalResult Importer::processStmt(clast_for *forStmt) {
   // Get loop bounds.
@@ -1252,7 +1252,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
   }
 
   // Create the for operation.
-  mlir::AffineForOp forOp = b.create<mlir::AffineForOp>(
+  mlir::affine::AffineForOp forOp = b.create<mlir::affine::AffineForOp>(
       UnknownLoc::get(context), lbOperands, lbMap, ubOperands, ubMap, stride);
 
   // Update the loop IV mapping.

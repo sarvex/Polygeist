@@ -37,8 +37,8 @@ static void annotatePointLoops(ValueRange operands, OpBuilder &b) {
   for (mlir::Value operand : operands) {
     // If a loop IV is directly passed into the statement call.
     if (BlockArgument arg = operand.dyn_cast<BlockArgument>()) {
-      mlir::AffineForOp forOp =
-          dyn_cast<mlir::AffineForOp>(arg.getOwner()->getParentOp());
+      mlir::affine::AffineForOp forOp =
+          dyn_cast<mlir::affine::AffineForOp>(arg.getOwner()->getParentOp());
       if (forOp) {
         // An affine.for that has its indunction var used by a scop.stmt
         // caller is a point loop.

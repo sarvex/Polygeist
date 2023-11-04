@@ -181,7 +181,7 @@ affine::FlatAffineValueConstraints *ScopStmt::getDomain() const {
 void ScopStmt::getEnclosingOps(llvm::SmallVectorImpl<mlir::Operation *> &ops,
                                bool forOnly) const {
   for (mlir::Operation *op : impl->enclosingOps)
-    if (!forOnly || isa<mlir::AffineForOp>(op))
+    if (!forOnly || isa<mlir::affine::AffineForOp>(op))
       ops.push_back(op);
 }
 
