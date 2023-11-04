@@ -61,9 +61,9 @@ static bool hasSingleStore(Block *block) {
 }
 
 namespace {
-struct MatchIfElsePass : PassWrapper<MatchIfElsePass, OperationPass<FuncOp>> {
+struct MatchIfElsePass : PassWrapper<MatchIfElsePass, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
-    FuncOp f = getOperation();
+    func::FuncOp f = getOperation();
     OpBuilder b(f.getContext());
 
     // If there is no store in the target block for a specific memref stored in
@@ -189,7 +189,7 @@ static void getMemRefStoreInfo(Block *block,
     }
 }
 
-static LogicalResult liftStoreOps(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
+static LogicalResult liftStoreOps(scf::IfOp ifOp, func::FuncOp f, OpBuilder &b) {
   Location loc = ifOp.getLoc();
 
   if (!hasMatchingStores({ifOp.thenBlock(), ifOp.elseBlock()}))
@@ -267,7 +267,7 @@ static LogicalResult liftStoreOps(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
   return success();
 }
 
-static bool processLiftStoreOps(FuncOp f, OpBuilder &b) {
+static bool processLiftStoreOps(func::FuncOp f, OpBuilder &b) {
   bool changed = false;
 
   f.walk([&](scf::IfOp ifOp) {
@@ -284,9 +284,9 @@ static bool processLiftStoreOps(FuncOp f, OpBuilder &b) {
 }
 
 namespace {
-struct LiftStoreOps : PassWrapper<LiftStoreOps, OperationPass<FuncOp>> {
+struct LiftStoreOps : PassWrapper<LiftStoreOps, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
-    FuncOp f = getOperation();
+    func::FuncOp f = getOperation();
     OpBuilder b(f.getContext());
 
     // For each scf.if, see if it has single store for each memref on each
@@ -301,7 +301,7 @@ struct LiftStoreOps : PassWrapper<LiftStoreOps, OperationPass<FuncOp>> {
 
 /// ---------------------- FoldSCFIf ----------------------------------
 
-static bool foldSCFIf(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
+static bool foldSCFIf(scf::IfOp ifOp, func::FuncOp f, OpBuilder &b) {
   Location loc = ifOp.getLoc();
 
   LLVM_DEBUG(dbgs() << "Working on ifOp: " << ifOp << "\n\n");
@@ -346,7 +346,7 @@ static bool foldSCFIf(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
 }
 
 /// Return true if anything changed.
-static bool process(FuncOp f, OpBuilder &b) {
+static bool process(func::FuncOp f, OpBuilder &b) {
   bool changed = false;
 
   f.walk([&](scf::IfOp ifOp) {
@@ -362,9 +362,9 @@ static bool process(FuncOp f, OpBuilder &b) {
 }
 
 namespace {
-struct FoldSCFIfPass : PassWrapper<FoldSCFIfPass, OperationPass<FuncOp>> {
+struct FoldSCFIfPass : PassWrapper<FoldSCFIfPass, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
-    FuncOp f = getOperation();
+    func::FuncOp f = getOperation();
     OpBuilder b(f.getContext());
 
     if (f->hasAttr("scop.ignored"))

@@ -78,7 +78,7 @@ static FuncOp createCallee(mlir::affine::AffineForOp forOp, int id, FuncOp f,
   // globally.
   std::string calleeName =
       f.getName().str() + std::string("__PE") + std::to_string(id);
-  FunctionType calleeType = b.getFunctionType(llvm::None, llvm::None);
+  FunctionType calleeType = b.getFunctionType({}, {});
   FuncOp callee = b.create<FuncOp>(forOp.getLoc(), calleeName, calleeType);
   callee.setVisibility(SymbolTable::Visibility::Private);
 
@@ -93,7 +93,7 @@ static FuncOp createCallee(mlir::affine::AffineForOp forOp, int id, FuncOp f,
   IRMapping mapping;
   for (Value arg : args)
     mapping.map(arg, entry->addArgument(arg.getType(), arg.getLoc()));
-  callee.setType(b.getFunctionType(entry->getArgumentTypes(), llvm::None));
+  callee.setType(b.getFunctionType(entry->getArgumentTypes(), {}));
 
   b.clone(*forOp.getOperation(), mapping);
 
@@ -117,7 +117,7 @@ static int extractPointLoops(FuncOp f, int startId, OpBuilder &b) {
 
   for (Operation *caller : callers) {
     SmallVector<mlir::affine::AffineForOp, 4> forOps;
-    getLoopIVs(*caller, &forOps);
+    affine::getAffineForIVs(*caller, &forOps);
 
     int pointBandStart = forOps.size();
     while (pointBandStart > 0 && isPointLoop(forOps[pointBandStart - 1])) {
