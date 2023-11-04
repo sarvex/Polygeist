@@ -36,13 +36,13 @@ static bool hasSingleStore(Block *block) {
   llvm::SetVector<Value> memrefs;
 
   for (Operation &op : block->getOperations()) {
-    if (isa<mlir::AffineStoreOp, memref::StoreOp>(op)) {
+    if (isa<mlir::affine::AffineStoreOp, memref::StoreOp>(op)) {
       Value memref = op.getOperand(1);
       if (memrefs.count(memref))
         return false;
 
       // The indices should be defined above the current block.
-      if (auto storeOp = dyn_cast<mlir::AffineStoreOp>(op)) {
+      if (auto storeOp = dyn_cast<mlir::affine::AffineStoreOp>(op)) {
         if (any_of(storeOp.getMapOperands(), [&](Value operand) {
               return operand.getParentBlock() == block;
             }))
@@ -72,22 +72,22 @@ struct MatchIfElsePass : PassWrapper<MatchIfElsePass, OperationPass<FuncOp>> {
       llvm::SetVector<Value> memrefs;
 
       for (Operation &op : target->getOperations())
-        if (isa<memref::StoreOp, mlir::AffineStoreOp>(op))
+        if (isa<memref::StoreOp, mlir::affine::AffineStoreOp>(op))
           memrefs.insert(op.getOperand(1));
 
       b.setInsertionPoint(target->getTerminator());
       for (Operation &op : source->getOperations()) {
-        if (!isa<mlir::AffineStoreOp, memref::StoreOp>(op))
+        if (!isa<mlir::affine::AffineStoreOp, memref::StoreOp>(op))
           continue;
         Value memref = op.getOperand(1);
         if (memrefs.count(memref)) // has been stored to
           continue;
 
-        if (auto storeOp = dyn_cast<AffineStoreOp>(op)) {
-          Value value = b.create<AffineLoadOp>(loc, storeOp.getMemRef(),
+        if (auto storeOp = dyn_cast<affine::AffineStoreOp>(op)) {
+          Value value = b.create<affine::AffineLoadOp>(loc, storeOp.getMemRef(),
                                                storeOp.getAffineMap(),
                                                storeOp.getMapOperands());
-          b.create<AffineStoreOp>(loc, value, storeOp.getMemRef(),
+          b.create<affine::AffineStoreOp>(loc, value, storeOp.getMemRef(),
                                   storeOp.getAffineMap(),
                                   storeOp.getMapOperands());
         } else if (auto storeOp = dyn_cast<memref::StoreOp>(op)) {
@@ -144,7 +144,7 @@ static bool hasMatchingStores(ArrayRef<Block *> blocks) {
     llvm::SetVector<Value> memrefs;
 
     for (Operation &op : block->getOperations())
-      if (isa<memref::StoreOp, mlir::AffineStoreOp>(op)) {
+      if (isa<memref::StoreOp, mlir::affine::AffineStoreOp>(op)) {
         Value memref = op.getOperand(1);
         assert(!memrefs.count(memref) &&
                "Should only apply on blocks that contain single store to each "
@@ -174,7 +174,7 @@ static void getMemRefStoreInfo(Block *block,
                                MapVector<Value, MemRefStoreInfo> &storeInfo) {
   unsigned ord = 0;
   for (Operation &op : block->getOperations())
-    if (isa<memref::StoreOp, mlir::AffineStoreOp>(op)) {
+    if (isa<memref::StoreOp, mlir::affine::AffineStoreOp>(op)) {
       MemRefStoreInfo info;
       info.index = ord++;
       info.type = op.getOperand(0).getType();
@@ -182,7 +182,7 @@ static void getMemRefStoreInfo(Block *block,
 
       if (auto storeOp = dyn_cast<memref::StoreOp>(op))
         info.operands = storeOp.getIndices();
-      else if (auto storeOp = dyn_cast<mlir::AffineStoreOp>(op))
+      else if (auto storeOp = dyn_cast<mlir::affine::AffineStoreOp>(op))
         info.operands = storeOp.getMapOperands();
 
       storeInfo[op.getOperand(1)] = info;
@@ -226,7 +226,7 @@ static LogicalResult liftStoreOps(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
     b.setInsertionPointToStart(target);
 
     for (Operation &op : source->getOperations()) {
-      if (isa<memref::StoreOp, mlir::AffineStoreOp>(op)) {
+      if (isa<memref::StoreOp, mlir::affine::AffineStoreOp>(op)) {
         Value memref = op.getOperand(1);
         Value toStore = op.getOperand(0);
         results[storeInfo[memref].index + numExistingResults] =
@@ -252,8 +252,8 @@ static LogicalResult liftStoreOps(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
     MemRefStoreInfo info;
     std::tie(memref, info) = p;
 
-    if (auto storeOp = dyn_cast<mlir::AffineStoreOp>(info.source))
-      b.create<mlir::AffineStoreOp>(
+    if (auto storeOp = dyn_cast<mlir::affine::AffineStoreOp>(info.source))
+      b.create<mlir::affine::AffineStoreOp>(
           loc, newIfOp.getResult(ifOp.getNumResults() + info.index), memref,
           storeOp.getAffineMap(), info.operands);
     else if (auto storeOp = dyn_cast<memref::StoreOp>(info.source))

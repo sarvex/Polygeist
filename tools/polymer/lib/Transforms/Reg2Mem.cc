@@ -85,7 +85,7 @@ static void mapDefToUses(mlir::func::FuncOp f, DefToUsesMap &defToUses) {
           defToUses[v].insert(op);
 
         // No need to look at the operands of the following list of operations.
-        if (!isa<mlir::AffineLoadOp>(defOp))
+        if (!isa<mlir::affine::AffineLoadOp>(defOp))
           ops.push_back(defOp);
       }
     }
@@ -141,8 +141,8 @@ static memref::AllocaOp createScratchpadAllocaOp(mlir::OpResult val,
       defOp->getLoc(), MemRefType::get({1}, val.getType())));
 }
 
-/// Creata an AffineStoreOp for the value to be stored on the scratchpad.
-static mlir::AffineStoreOp createScratchpadStoreOp(mlir::Value valToStore,
+/// Creata an affine::AffineStoreOp for the value to be stored on the scratchpad.
+static mlir::affine::AffineStoreOp createScratchpadStoreOp(mlir::Value valToStore,
                                                    memref::AllocaOp allocaOp,
                                                    mlir::OpBuilder &b) {
   // Create a storeOp to the memref using address 0. The new storeOp will be
@@ -151,19 +151,19 @@ static mlir::AffineStoreOp createScratchpadStoreOp(mlir::Value valToStore,
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfterValue(valToStore);
 
-  return b.create<mlir::AffineStoreOp>(
+  return b.create<mlir::affine::AffineStoreOp>(
       allocaOp.getLoc(), valToStore, allocaOp.getResult(),
       b.getConstantAffineMap(0), std::vector<mlir::Value>());
 }
 
-/// Create an AffineLoadOp for the value stored in the scratchpad. The insertion
+/// Create an affine::AffineLoadOp for the value stored in the scratchpad. The insertion
 /// point will be at the beginning of the block of the useOp, such that all the
 /// subsequent uses of the Value in the scratchpad can re-use the same load
 /// result. Note that we don't check whether the useOp is still using the
 /// original value that is stored in the scratchpad (some replacement could
 /// happen already), you need to do that before calling this function to avoid
 /// possible redundancy. This function won't replace uses.
-static mlir::AffineLoadOp createScratchpadLoadOp(memref::AllocaOp allocaOp,
+static mlir::affine::AffineLoadOp createScratchpadLoadOp(memref::AllocaOp allocaOp,
                                                  mlir::Operation *useOp,
                                                  mlir::OpBuilder &b) {
   // The insertion point will be at the beginning of the parent block for useOp.
@@ -172,7 +172,7 @@ static mlir::AffineLoadOp createScratchpadLoadOp(memref::AllocaOp allocaOp,
   // The location is set to be the useOp that will finally use this newly
   // created load op. The address is set to be 0 since the memory has only one
   // element in it. You will need to replace the input to useOp outside.
-  return b.create<mlir::AffineLoadOp>(useOp->getLoc(), allocaOp.getResult(),
+  return b.create<mlir::affine::AffineLoadOp>(useOp->getLoc(), allocaOp.getResult(),
                                       b.getConstantAffineMap(0),
                                       std::vector<mlir::Value>());
 }
@@ -221,7 +221,7 @@ static void demoteRegisterToMemory(mlir::func::FuncOp f, OpBuilder &b) {
 
     for (mlir::Operation *useOp : useOps) {
       // Create the load op for it.
-      mlir::AffineLoadOp loadOp = createScratchpadLoadOp(allocaOp, useOp, b);
+      mlir::affine::AffineLoadOp loadOp = createScratchpadLoadOp(allocaOp, useOp, b);
 
       // Replace the uses of val in the same region as useOp (or loadOp).
       val.replaceUsesWithIf(loadOp.getResult(), [&](mlir::OpOperand &operand) {
@@ -327,12 +327,12 @@ public:
 static void insertRedundantLoad(mlir::func::FuncOp f, OpBuilder &b) {
   DominanceInfo dom(f);
 
-  SmallVector<mlir::AffineStoreOp, 4> storeOps;
-  f.walk([&storeOps](mlir::AffineStoreOp op) { storeOps.push_back(op); });
+  SmallVector<mlir::affine::AffineStoreOp, 4> storeOps;
+  f.walk([&storeOps](mlir::affine::AffineStoreOp op) { storeOps.push_back(op); });
 
   llvm::SetVector<mlir::Operation *> storeOpsToLoad;
 
-  for (mlir::AffineStoreOp storeOp : storeOps) {
+  for (mlir::affine::AffineStoreOp storeOp : storeOps) {
     Value valueToStore = storeOp.getValueToStore();
     Value memref = storeOp.getMemRef();
 
@@ -344,14 +344,14 @@ static void insertRedundantLoad(mlir::func::FuncOp f, OpBuilder &b) {
         continue;
 
       //  This user is another storeOp that dominates the current storeOp.
-      if (isa<mlir::AffineStoreOp>(user) && dom.dominates(user, storeOp)) {
+      if (isa<mlir::affine::AffineStoreOp>(user) && dom.dominates(user, storeOp)) {
         // ... and there is no other storeOp that is beging dominated in
         // between.
         bool hasDominatedMemStore = false;
         for (mlir::Operation *memUser : memref.getUsers()) {
           if (memUser == storeOp || memUser == user)
             continue;
-          if (isa<mlir::AffineStoreOp>(memUser) &&
+          if (isa<mlir::affine::AffineStoreOp>(memUser) &&
               dom.dominates(user, memUser) && dom.dominates(memUser, storeOp)) {
             hasDominatedMemStore = true;
             break;
@@ -367,14 +367,14 @@ static void insertRedundantLoad(mlir::func::FuncOp f, OpBuilder &b) {
   }
 
   for (mlir::Operation *op : storeOpsToLoad) {
-    mlir::AffineStoreOp storeOpToLoad = cast<mlir::AffineStoreOp>(op);
+    mlir::affine::AffineStoreOp storeOpToLoad = cast<mlir::affine::AffineStoreOp>(op);
 
     OpBuilder::InsertionGuard guard(b);
     b.setInsertionPointAfter(storeOpToLoad);
 
     Value value = storeOpToLoad.getValueToStore();
     Value memref = storeOpToLoad.getMemRef();
-    mlir::AffineLoadOp loadOp = b.create<mlir::AffineLoadOp>(
+    mlir::affine::AffineLoadOp loadOp = b.create<mlir::affine::AffineLoadOp>(
         storeOpToLoad.getLoc(), memref, storeOpToLoad.getAffineMap(),
         storeOpToLoad.getMapOperands());
 
@@ -443,7 +443,7 @@ static void storeInitValue(mlir::Value initVal, mlir::Value spad,
                            mlir::affine::AffineForOp forOp, OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfterValue(spad);
-  b.create<mlir::AffineStoreOp>(spad.getLoc(), initVal, spad,
+  b.create<mlir::affine::AffineStoreOp>(spad.getLoc(), initVal, spad,
                                 b.getConstantAffineMap(0), llvm::None);
 }
 
@@ -455,7 +455,7 @@ static mlir::Value loadIterArg(mlir::Value iterArg,
 
   assert(iterArgToMem.count(iterArg));
 
-  return b.create<mlir::AffineLoadOp>(forOp.getLoc(), iterArgToMem[iterArg],
+  return b.create<mlir::affine::AffineLoadOp>(forOp.getLoc(), iterArgToMem[iterArg],
                                       b.getConstantAffineMap(0), llvm::None);
 }
 
@@ -467,7 +467,7 @@ static void storeIterArg(int idx, mlir::Value spad, mlir::AffineYieldOp yieldOp,
                          OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPoint(yieldOp);
-  b.create<mlir::AffineStoreOp>(yieldOp.getLoc(), yieldOp.getOperand(idx), spad,
+  b.create<mlir::affine::AffineStoreOp>(yieldOp.getLoc(), yieldOp.getOperand(idx), spad,
                                 b.getConstantAffineMap(0), llvm::None);
 }
 
@@ -476,7 +476,7 @@ static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::affine::AffineForOp 
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfter(forOp);
 
-  return b.create<mlir::AffineLoadOp>(forOp.getLoc(), spad,
+  return b.create<mlir::affine::AffineLoadOp>(forOp.getLoc(), spad,
                                       b.getConstantAffineMap(0), llvm::None);
 }
 
@@ -796,7 +796,7 @@ static void resetLoadAndStoreOpsToScratchpad(mlir::func::FuncOp f, mlir::Value s
   OpBuilder::InsertionGuard guard(b);
 
   for (mlir::Operation *op : spad.getUsers()) {
-    if (isa<mlir::AffineLoadOp, mlir::AffineStoreOp>(op)) {
+    if (isa<mlir::affine::AffineLoadOp, mlir::affine::AffineStoreOp>(op)) {
       llvm::SmallVector<mlir::affine::AffineForOp, 4> forOps;
       getLoopIVs(*op, &forOps);
 
@@ -825,16 +825,16 @@ static void resetLoadAndStoreOpsToScratchpad(mlir::func::FuncOp f, mlir::Value s
       mlir::AffineMap affMap =
           mlir::AffineMap::get(numOperands, 0, indices, b.getContext());
 
-      if (isa<mlir::AffineLoadOp>(op)) {
-        mlir::AffineLoadOp loadOp = dyn_cast<mlir::AffineLoadOp>(op);
-        mlir::AffineLoadOp newLoadOp = b.create<mlir::AffineLoadOp>(
+      if (isa<mlir::affine::AffineLoadOp>(op)) {
+        mlir::affine::AffineLoadOp loadOp = dyn_cast<mlir::affine::AffineLoadOp>(op);
+        mlir::affine::AffineLoadOp newLoadOp = b.create<mlir::affine::AffineLoadOp>(
             op->getLoc(), loadOp.getMemRef(), affMap, operands);
         loadOp.replaceAllUsesWith(newLoadOp.getOperation());
         loadOp.erase();
       } else {
-        assert(isa<mlir::AffineStoreOp>(op));
-        mlir::AffineStoreOp storeOp = dyn_cast<mlir::AffineStoreOp>(op);
-        b.create<mlir::AffineStoreOp>(op->getLoc(), storeOp.getValueToStore(),
+        assert(isa<mlir::affine::AffineStoreOp>(op));
+        mlir::affine::AffineStoreOp storeOp = dyn_cast<mlir::affine::AffineStoreOp>(op);
+        b.create<mlir::affine::AffineStoreOp>(op->getLoc(), storeOp.getValueToStore(),
                                       storeOp.getMemRef(), affMap, operands);
         storeOp.erase();
       }

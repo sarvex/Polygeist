@@ -244,11 +244,11 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, FuncOp f,
   }
 
   Operation *loadOp =
-      b.create<mlir::AffineLoadOp>(op->getLoc(), scrInFunc, addrs);
+      b.create<mlir::affine::AffineLoadOp>(op->getLoc(), scrInFunc, addrs);
   op->replaceAllUsesWith(loadOp);
 
   b.setInsertionPointAfterValue(addrs.back());
-  b.create<mlir::AffineStoreOp>(op->getLoc(), op->getResult(0), scrInFunc,
+  b.create<mlir::affine::AffineStoreOp>(op->getLoc(), op->getResult(0), scrInFunc,
                                 addrs);
 }
 
@@ -527,7 +527,7 @@ static bool isSplittable(Operation *op) {
 static int annotateSplittable(FuncOp f, OpBuilder &b, int startId) {
   int id = startId;
 
-  f.walk([&](mlir::AffineStoreOp storeOp) {
+  f.walk([&](mlir::affine::AffineStoreOp storeOp) {
     // Breadth first search to find the splittable operations.
 
     // Stores operation and depth pairs.
@@ -715,7 +715,7 @@ static void findAccessPatterns(Operation *op,
     Operation *curr = worklist.front();
     worklist.pop();
 
-    if (mlir::AffineLoadOp loadOp = dyn_cast<mlir::AffineLoadOp>(curr)) {
+    if (mlir::affine::AffineLoadOp loadOp = dyn_cast<mlir::affine::AffineLoadOp>(curr)) {
       std::vector<Value> ivs;
       OperandRange mapOperands = loadOp.getMapOperands();
       std::copy(mapOperands.begin(), mapOperands.end(),
@@ -767,7 +767,7 @@ static bool setEqual(ValueRange a, ValueRange b) {
   return true;
 }
 
-static bool satisfySplitHeuristic(mlir::AffineStoreOp op) {
+static bool satisfySplitHeuristic(mlir::affine::AffineStoreOp op) {
   // Get the enclosing loop IVs.
   SmallVector<mlir::affine::AffineForOp, 4> forOps;
   getLoopIVs(*op.getOperation(), &forOps);
@@ -845,7 +845,7 @@ static bool satisfySplitHeuristic(mlir::AffineStoreOp op) {
   return numSets >= 2;
 }
 
-int64_t annotateSplitId(mlir::AffineStoreOp op, int64_t startId, OpBuilder &b,
+int64_t annotateSplitId(mlir::affine::AffineStoreOp op, int64_t startId, OpBuilder &b,
                         int targetDepth = 2) {
   std::queue<std::pair<Operation *, int>> worklist;
   SmallPtrSet<Operation *, 4> visited;
@@ -871,7 +871,7 @@ int64_t annotateSplitId(mlir::AffineStoreOp op, int64_t startId, OpBuilder &b,
       Operation *defOp = operand.getDefiningOp();
       if (!defOp || visited.contains(defOp))
         continue;
-      if (isa<mlir::AffineLoadOp, mlir::arith::ConstantOp>(defOp))
+      if (isa<mlir::affine::AffineLoadOp, mlir::arith::ConstantOp>(defOp))
         continue;
 
       visited.insert(defOp);
@@ -884,7 +884,7 @@ int64_t annotateSplitId(mlir::AffineStoreOp op, int64_t startId, OpBuilder &b,
 
 int64_t annotateHeuristic(FuncOp f, int64_t startId, OpBuilder &b) {
   int64_t currId = startId;
-  f.walk([&](mlir::AffineStoreOp op) {
+  f.walk([&](mlir::affine::AffineStoreOp op) {
     if (satisfySplitHeuristic(op)) {
       currId = annotateSplitId(op, currId, b);
     }

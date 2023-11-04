@@ -90,7 +90,7 @@ insertScratchpadForInterprocUses(mlir::Operation *defOp,
 
   // Store within the callee for the used value.
   b.setInsertionPointAfter(defInCalleeOp);
-  b.create<mlir::AffineStoreOp>(allocaOp->getLoc(), defInCalleeOp->getResult(0),
+  b.create<mlir::affine::AffineStoreOp>(allocaOp->getLoc(), defInCalleeOp->getResult(0),
                                 scratchpad, b.getConstantAffineMap(0),
                                 std::vector<mlir::Value>());
 
@@ -123,9 +123,9 @@ insertScratchpadForInterprocUses(mlir::Operation *defOp,
 }
 
 static Value getMemRef(Operation *op) {
-  if (isa<mlir::AffineLoadOp, memref::LoadOp>(op))
+  if (isa<mlir::affine::AffineLoadOp, memref::LoadOp>(op))
     return op->getOperand(0);
-  if (isa<mlir::AffineStoreOp, memref::StoreOp>(op))
+  if (isa<mlir::affine::AffineStoreOp, memref::StoreOp>(op))
     return op->getOperand(1);
 
   return nullptr;
@@ -154,7 +154,7 @@ static bool isUpdatedByDominatingStore(Operation *op, Operation *domOp,
     if (Value memref = getMemRef(currOp))
       for (Operation *userOp : memref.getUsers())
         // Both affine.store and memref.store should be counted.
-        if (isa<mlir::AffineStoreOp, memref::StoreOp>(userOp))
+        if (isa<mlir::affine::AffineStoreOp, memref::StoreOp>(userOp))
           if (memref == getMemRef(userOp) && userOp != domOp &&
               dom.dominates(userOp, domOp)) {
             LLVM_DEBUG(dbgs()
@@ -214,7 +214,7 @@ static void getScopStmtOps(Operation *writeOp,
       args.insert(scratchpad);
 
       b.setInsertionPointAfter(op);
-      mlir::Operation *loadOp = b.create<mlir::AffineLoadOp>(
+      mlir::Operation *loadOp = b.create<mlir::affine::AffineLoadOp>(
           op->getLoc(), scratchpad, b.getConstantAffineMap(0),
           std::vector<mlir::Value>());
 
@@ -455,18 +455,18 @@ static unsigned extractScopStmt(mlir::func::FuncOp f, unsigned numCallees,
 /// Given a value, if any of its uses is a StoreOp, we try to replace other uses
 /// by a load from that store.
 static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
-  SmallVector<mlir::AffineStoreOp, 8> storeOps;
+  SmallVector<mlir::affine::AffineStoreOp, 8> storeOps;
 
   f.walk([&](Operation *op) {
     for (OpResult val : op->getResults()) {
       SmallVector<Operation *, 8> userOps;
-      SmallVector<mlir::AffineStoreOp, 8> currStoreOps;
+      SmallVector<mlir::affine::AffineStoreOp, 8> currStoreOps;
 
-      // Find all the users and AffineStoreOp in them.
+      // Find all the users and affine::AffineStoreOp in them.
       for (Operation *userOp : val.getUsers()) {
         userOps.push_back(userOp);
-        if (mlir::AffineStoreOp storeOp =
-                dyn_cast<mlir::AffineStoreOp>(userOp)) {
+        if (mlir::affine::AffineStoreOp storeOp =
+                dyn_cast<mlir::affine::AffineStoreOp>(userOp)) {
           currStoreOps.push_back(storeOp);
         }
       }
@@ -477,7 +477,7 @@ static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
     }
   });
 
-  for (mlir::AffineStoreOp storeOp : storeOps) {
+  for (mlir::affine::AffineStoreOp storeOp : storeOps) {
     Value val = storeOp.getValueToStore();
     SmallVector<Operation *, 8> userOps(val.getUsers());
     // We insert a new load immediately after the store.
@@ -485,8 +485,8 @@ static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
     b.setInsertionPointAfter(storeOp);
 
     MemRefAccess access(storeOp);
-    mlir::AffineLoadOp loadOp =
-        b.create<mlir::AffineLoadOp>(storeOp.getLoc(), storeOp.getMemRef(),
+    mlir::affine::AffineLoadOp loadOp =
+        b.create<mlir::affine::AffineLoadOp>(storeOp.getLoc(), storeOp.getMemRef(),
                                      storeOp.getAffineMap(), access.indices);
 
     LLVM_DEBUG(dbgs() << " + Created load : \n\t" << loadOp
