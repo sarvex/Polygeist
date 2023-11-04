@@ -242,7 +242,7 @@ static bool isBoundParallelizable(mlir::affine::AffineForOp forOp, bool isUpper)
       isUpper ? forOp.getUpperBoundOperands() : forOp.getLowerBoundOperands();
 
   for (mlir::Value operand : mapOperands)
-    if (!isTopLevelValue(operand))
+    if (!affine::isTopLevelValue(operand))
       return false;
   return true;
 }
@@ -270,7 +270,7 @@ struct PlutoParallelizePass
     : public mlir::PassWrapper<PlutoParallelizePass,
                                OperationPass<mlir::func::FuncOp>> {
   void runOnOperation() override {
-    FuncOp f = getOperation();
+    func::FuncOp f = getOperation();
     OpBuilder b(f.getContext());
 
     plutoParallelize(f, b);
@@ -278,7 +278,7 @@ struct PlutoParallelizePass
 };
 } // namespace
 
-static void dedupIndexCast(FuncOp f) {
+static void dedupIndexCast(func::FuncOp f) {
   if (f.getBlocks().empty())
     return;
 
