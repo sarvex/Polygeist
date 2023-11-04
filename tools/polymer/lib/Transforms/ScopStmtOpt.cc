@@ -95,7 +95,7 @@ static Operation *apply(mlir::AffineMap affMap, ValueRange operands,
     b.setInsertionPointAfterValue(insertAfter);
   } else
     b.setInsertionPointToStart(
-        &(*(call->getParentOfType<func::FuncOp>().body().begin())));
+        &(*(call->getParentOfType<func::FuncOp>().getBody().begin())));
 
   // TODO: properly handle these index casting cases.
   for (size_t i = 0; i < newOperands.size(); i++)
@@ -150,7 +150,7 @@ static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, fun
   for (int dim = 0; dim < numDims; dim++) {
     mlir::AffineMap lbMap, ubMap;
     std::tie(lbMap, ubMap) = cst.getLowerAndUpperBound(
-        dim, 0, numDims, numDims, llvm::None, b.getContext());
+        dim, 0, numDims, numDims, {}, b.getContext());
 
     // mlir::AffineMap lbMap = forOp.getLowerBoundMap();
     // mlir::AffineMap ubMap = forOp.getUpperBoundMap();
@@ -190,7 +190,7 @@ static Value appendArgument(Value arg, func::FuncOp func, mlir::func::CallOp cal
 
   call->setOperands(operands);
   func.setType(b.getFunctionType(argTypes, TypeRange(call.getResults())));
-  Block &entryBlock = *(func.body().begin());
+  Block &entryBlock = *(func.getBody().begin());
   entryBlock.addArgument(arg.getType(), arg.getLoc());
 
   return entryBlock.getArguments().back();
@@ -201,7 +201,7 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, func::FuncOp f,
   LLVM_DEBUG(op->dump());
 
   SmallVector<mlir::affine::AffineForOp, 4> forOps;
-  getLoopIVs(*op, &forOps);
+  affine::getAffineForIVs(*op, &forOps);
 
   // If the target operation is very deeply nested (level >= 3), we build a
   // scratchpad of dims (total levels - 2), i.e., the scratchpad will be reused
@@ -507,7 +507,7 @@ static bool isSplittable(Operation *op) {
     return false;
 
   SmallVector<mlir::affine::AffineForOp, 4> forOps;
-  getLoopIVs(*op, &forOps);
+  affine::getAffineForIVs(*op, &forOps);
 
   if (forOps.size() < 1)
     return false;
@@ -556,7 +556,9 @@ static int annotateSplittable(func::FuncOp f, OpBuilder &b, int startId) {
         if (defOp->getParentRegion() != storeOp->getParentRegion())
           continue;
         // Filter out defining operations of specific types.
-        if (isa<mlir::AffineReadOpInterface, arith::ConstantOp>(defOp))
+        if (defOp->hasTrait<mlir::affine::detail::AffineReadOpInterfaceTrait>())
+          continue;
+        if (isa<arith::ConstantOp>(defOp))
           continue;
 
         worklist.push(std::make_pair(defOp, depth + 1));
@@ -770,7 +772,7 @@ static bool setEqual(ValueRange a, ValueRange b) {
 static bool satisfySplitHeuristic(mlir::affine::AffineStoreOp op) {
   // Get the enclosing loop IVs.
   SmallVector<mlir::affine::AffineForOp, 4> forOps;
-  getLoopIVs(*op.getOperation(), &forOps);
+  affine::getAffineForIVs(*op.getOperation(), &forOps);
 
   if (forOps.size() < 3)
     return false;
