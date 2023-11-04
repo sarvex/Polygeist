@@ -32,7 +32,7 @@ extern "C" {
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/Dominance.h"
@@ -711,7 +711,7 @@ void Importer::initializeSymbol(mlir::Value val) {
   if (!hasInsertionPoint)
     return;
 
-  BlockAndValueMapping vMap;
+  IRMapping vMap;
   for (unsigned i = 0; i < newOperands.size(); i++)
     vMap.map(defOp->getOperand(i), newOperands[i]);
 
@@ -1311,7 +1311,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
       funcTy);
   numInternalFunctions++;
   Block *newEntry = func.addEntryBlock();
-  BlockAndValueMapping vMap;
+  IRMapping vMap;
   vMap.map(args, func.getArguments());
   b.setInsertionPointToStart(newEntry);
   b.clone(*forOp.getOperation(), vMap);

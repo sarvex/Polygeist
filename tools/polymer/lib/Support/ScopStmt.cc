@@ -13,7 +13,7 @@
 #include "mlir/Dialect/Affine/IR/AffineValueMap.h"
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/IntegerSet.h"
@@ -45,7 +45,7 @@ public:
   /// caller, and find and insert all enclosing for/if ops to enclosingOps.
   void initializeDomainAndEnclosingOps();
 
-  void getArgsValueMapping(BlockAndValueMapping &argMap);
+  void getArgsValueMapping(IRMapping &argMap);
 
   /// Name of the callee, as well as the scop.stmt. It will also be the
   /// symbol in the OpenScop representation.
@@ -157,7 +157,7 @@ void ScopStmtImpl::initializeDomainAndEnclosingOps() {
   reorderSymbolsByOperandId(domain);
 }
 
-void ScopStmtImpl::getArgsValueMapping(BlockAndValueMapping &argMap) {
+void ScopStmtImpl::getArgsValueMapping(IRMapping &argMap) {
   auto callerArgs = caller.getArgOperands();
   auto calleeArgs = callee.getArguments();
   unsigned numArgs = callerArgs.size();
@@ -211,7 +211,7 @@ void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
                                      mlir::Value *memref) const {
   // Map from callee arguments to caller's. impl holds the callee and caller
   // instances.
-  BlockAndValueMapping argMap;
+  IRMapping argMap;
   impl->getArgsValueMapping(argMap);
 
   // TODO: assert op is in the callee.

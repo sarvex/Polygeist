@@ -10,7 +10,7 @@
 #include "mlir/Dialect/Affine/IR/AffineValueMap.h"
 #include "mlir/Dialect/Affine/Utils.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
 #include "mlir/IR/OpImplementation.h"
@@ -90,7 +90,7 @@ static FuncOp createCallee(mlir::affine::AffineForOp forOp, int id, FuncOp f,
   llvm::SetVector<Value> args;
   getArgs(forOp, args);
 
-  BlockAndValueMapping mapping;
+  IRMapping mapping;
   for (Value arg : args)
     mapping.map(arg, entry->addArgument(arg.getType(), arg.getLoc()));
   callee.setType(b.getFunctionType(entry->getArgumentTypes(), llvm::None));

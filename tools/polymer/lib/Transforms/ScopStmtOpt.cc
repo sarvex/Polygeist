@@ -12,7 +12,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
 #include "mlir/IR/OpImplementation.h"
@@ -40,7 +40,7 @@ using namespace polymer;
 
 static void replace(ValueRange srcValues,
                     SmallVectorImpl<mlir::Value> &dstValues,
-                    BlockAndValueMapping &mapping) {
+                    IRMapping &mapping) {
   for (Value src : srcValues) {
     // src could come from an index_cast.
     if (arith::IndexCastOp op = src.getDefiningOp<arith::IndexCastOp>())
@@ -83,7 +83,7 @@ static Value findLastDefined(ValueRange values) {
 }
 
 static Operation *apply(mlir::AffineMap affMap, ValueRange operands,
-                        BlockAndValueMapping &mapping, mlir::func::CallOp call,
+                        IRMapping &mapping, mlir::func::CallOp call,
                         OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
 
@@ -141,7 +141,7 @@ static void getMemRefSize(MutableArrayRef<mlir::affine::AffineForOp> forOps, Fun
   // Project out indices other than the innermost.
   projectAllOutExcept(cst, indices);
 
-  BlockAndValueMapping mapping;
+  IRMapping mapping;
   mapping.map(f.getArguments(), call.getOperands());
 
   SmallVector<mlir::Value, 4> mapOperands;
@@ -361,7 +361,7 @@ struct RewriteScratchpadTypePass
     ModuleOp m = getOperation();
     OpBuilder b(m.getContext());
 
-    SmallVector<std::pair<mlir::func::CallOp, BlockAndValueMapping>> worklist;
+    SmallVector<std::pair<mlir::func::CallOp, IRMapping>> worklist;
 
     // Find the pattern.
     m.walk([&](mlir::func::CallOp caller) {
@@ -394,7 +394,7 @@ struct RewriteScratchpadTypePass
         return;
 
       // Map from unranked operands to the ranked sources.
-      BlockAndValueMapping vmap;
+      IRMapping vmap;
       vmap.map(unranked, sources);
 
       worklist.push_back({caller, vmap});
@@ -403,7 +403,7 @@ struct RewriteScratchpadTypePass
     // Process each work item.
     for (auto item : worklist) {
       mlir::func::CallOp caller;
-      BlockAndValueMapping vmap;
+      IRMapping vmap;
       std::tie(caller, vmap) = item;
 
       // Get the source, statically-shaped values and types for argument

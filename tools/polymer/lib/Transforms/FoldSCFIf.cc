@@ -12,7 +12,7 @@
 #include "mlir/Dialect/Affine/Utils.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
 #include "mlir/IR/OpImplementation.h"
@@ -216,7 +216,7 @@ static LogicalResult liftStoreOps(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
                                           /*withElseRegion=*/true);
 
   auto cloneBlock = [&](Block *target, Block *source) {
-    BlockAndValueMapping vmap;
+    IRMapping vmap;
 
     scf::YieldOp yieldOp = cast<scf::YieldOp>(source->getTerminator());
     unsigned numExistingResults = yieldOp.getNumOperands();
@@ -316,7 +316,7 @@ static bool foldSCFIf(scf::IfOp ifOp, FuncOp f, OpBuilder &b) {
   SmallVector<Value> thenResults, elseResults;
 
   auto cloneAfter = [&](Block *block, SmallVectorImpl<Value> &results) {
-    BlockAndValueMapping vmap;
+    IRMapping vmap;
     for (Operation &op : block->getOperations()) {
       if (auto yieldOp = dyn_cast<scf::YieldOp>(op))
         for (Value result : yieldOp.getOperands())

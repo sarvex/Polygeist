@@ -16,7 +16,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/IntegerSet.h"
 #include "mlir/IR/OpImplementation.h"
@@ -495,7 +495,7 @@ static mlir::affine::AffineForOp cloneAffineForWithoutIterArgs(mlir::affine::Aff
       forOp.getLoc(), forOp.getLowerBoundOperands(), forOp.getLowerBoundMap(),
       forOp.getUpperBoundOperands(), forOp.getUpperBoundMap(), forOp.getStep());
 
-  BlockAndValueMapping mapping;
+  IRMapping mapping;
   mapping.map(forOp.getInductionVar(), newForOp.getInductionVar());
 
   b.setInsertionPointToStart(newForOp.getBody());

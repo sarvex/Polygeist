@@ -15,7 +15,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/IR/BlockAndValueMapping.h"
+#include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/Dominance.h"
 #include "mlir/IR/OpImplementation.h"
@@ -316,7 +316,7 @@ static mlir::func::FuncOp createCallee(StringRef calleeName,
   // Create the mapping from the args to the newly created BlockArguments, to
   // replace the uses of the values in the original function to the newly
   // declared entryBlock's input.
-  BlockAndValueMapping mapping;
+  IRMapping mapping;
   mapping.map(args, entryBlock->getArguments());
   // for (auto arg : args) {
   //   arg.dump();
