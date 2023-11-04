@@ -57,9 +57,9 @@ jobs:
       if: steps.cache-pluto.outputs.cache-hit != 'true'
       run: |
         mkdir pluto-build
-        src/tools/polymer/build_pluto.sh $(pwd)/pluto-build
-        src/tools/polymer/build_openscop.sh $(pwd)/pluto-build
-        src/tools/polymer/build_cloog.sh $(pwd)/pluto-build
+        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_pluto.sh $(pwd)/pluto-build
+        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_openscop.sh $(pwd)/pluto-build
+        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_cloog.sh $(pwd)/pluto-build
         sleep 1s
 
     - name: MLIR build
@@ -79,6 +79,7 @@ jobs:
         cd build
         ls ../mlir-build/lib/cmake/clang
         cmake ../src/ -GNinja -DMLIR_DIR=`pwd`/../mlir-build/lib/cmake/mlir -DLLVM_EXTERNAL_LIT=`pwd`/../mlir-build/bin/llvm-lit -DClang_DIR=`pwd`/../mlir-build/lib/cmake/clang -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_C_COMPILER=${{matrix.compiler}} -DCMAKE_CXX_COMPILER=${{matrix.cxxcompiler}} -DPOLYGEIST_ENABLE_POLYMER=1 -DPOLYGEIST_PLUTO_DIR=$(pwd)/../pluto-build/
+
     - name: test cgeist
       run: |
         cd build
