@@ -2,6 +2,7 @@
 #define POLYMER_TRANSFORMS_PASSES
 
 include "mlir/Pass/PassBase.td"
+include "mlir/Dialect/Func/IR/FuncOps.td"
 include "mlir/Rewrite/PassUtil.td"
 
 def AnnotateScop : Pass<"annotate-scop", "mlir::func::FuncOp"> {

@@ -10,6 +10,7 @@
 #include "mlir/Dialect/Affine/IR/AffineValueMap.h"
 #include "mlir/Dialect/Affine/Passes.h"
 #include "mlir/Dialect/Affine/Utils.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/IRMapping.h"
@@ -94,7 +95,7 @@ struct MatchIfElsePass : PassWrapper<MatchIfElsePass, OperationPass<func::FuncOp
           Value value = b.create<memref::LoadOp>(loc, storeOp.getMemRef(),
                                                  storeOp.getIndices());
           b.create<memref::StoreOp>(loc, value, storeOp.getMemRef(),
-                                    storeOp.indices());
+                                    storeOp.getIndices());
         }
       }
     };
@@ -380,7 +381,7 @@ void polymer::registerFoldSCFIfPass() {
                              [](OpPassManager &pm) {
                                pm.addPass(std::make_unique<MatchIfElsePass>());
                                pm.addPass(std::make_unique<LiftStoreOps>());
-                               pm.addPass(createAffineScalarReplacementPass());
+                               pm.addPass(affine::createAffineScalarReplacementPass());
                                pm.addPass(std::make_unique<FoldSCFIfPass>());
                              });
 }

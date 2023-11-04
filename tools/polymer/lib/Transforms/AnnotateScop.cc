@@ -17,7 +17,7 @@ using namespace polymer;
 namespace {
 struct AnnotateScop : public polymer::AnnotateScopBase<AnnotateScop> {
   void runOnOperation() override {
-    FuncOp f = getOperation();
+    func::FuncOp f = getOperation();
     OpBuilder b(f.getContext());
 
     for (auto &name : includedFunctions)
