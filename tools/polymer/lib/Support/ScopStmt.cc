@@ -207,7 +207,7 @@ static mlir::Value findBlockArg(mlir::Value v) {
 }
 
 void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
-                                     mlir::AffineValueMap *vMap,
+                                     mlir::affine::AffineValueMap *vMap,
                                      mlir::Value *memref) const {
   // Map from callee arguments to caller's. impl holds the callee and caller
   // instances.
@@ -217,8 +217,8 @@ void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
   // TODO: assert op is in the callee.
   MemRefAccess access(op);
 
-  // Collect the access AffineValueMap that binds to operands in the callee.
-  AffineValueMap aMap;
+  // Collect the access affine::AffineValueMap that binds to operands in the callee.
+  affine::AffineValueMap aMap;
   access.getAccessMap(&aMap);
 
   // Replace its operands by what the caller uses.
@@ -233,7 +233,7 @@ void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
     operands.push_back(origArg);
   }
 
-  // Set the access AffineValueMap.
+  // Set the access affine::AffineValueMap.
   vMap->reset(aMap.getAffineMap(), operands);
   // Set the memref.
   *memref = argMap.lookup(access.memref);

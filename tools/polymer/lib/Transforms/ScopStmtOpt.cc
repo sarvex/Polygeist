@@ -825,12 +825,12 @@ static bool satisfySplitHeuristic(mlir::AffineStoreOp op) {
           accesses[i].indices.size() != accesses[j].indices.size())
         continue;
 
-      AffineValueMap vmap1, vmap2;
+      affine::AffineValueMap vmap1, vmap2;
       accesses[i].getAccessMap(&vmap1);
       accesses[j].getAccessMap(&vmap2);
 
-      AffineValueMap diff;
-      AffineValueMap::difference(vmap1, vmap2, &diff);
+      affine::AffineValueMap diff;
+      affine::AffineValueMap::difference(vmap1, vmap2, &diff);
 
       bool isSame = true;
       for (unsigned k = 0; isSame && k < diff.getNumResults(); k++) {

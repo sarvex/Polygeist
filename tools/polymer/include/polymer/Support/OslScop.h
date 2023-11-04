@@ -25,8 +25,8 @@ struct osl_statement;
 struct osl_generic;
 
 namespace mlir {
-class AffineValueMap;
 namespace affine {
+class AffineValueMap;
 class FlatAffineValueConstraints;
 }
 struct LogicalResult;
@@ -92,7 +92,7 @@ public:
                              llvm::ArrayRef<mlir::Operation *> ops);
   /// Add the access relation.
   void addAccessRelation(int stmtId, bool isRead, mlir::Value memref,
-                         mlir::AffineValueMap &vMap,
+                         mlir::affine::AffineValueMap &vMap,
                          mlir::affine::FlatAffineValueConstraints &cst);
 
   /// Add a new generic field to a statement. `target` gives the statement ID.
@@ -142,7 +142,7 @@ private:
 
   /// Create access relation constraints.
   void
-  createAccessRelationConstraints(mlir::AffineValueMap &vMap,
+  createAccessRelationConstraints(mlir::affine::AffineValueMap &vMap,
                                   mlir::affine::FlatAffineValueConstraints &cst,
                                   mlir::affine::FlatAffineValueConstraints &domain);
 

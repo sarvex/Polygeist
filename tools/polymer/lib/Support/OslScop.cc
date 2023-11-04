@@ -253,7 +253,7 @@ void OslScop::addScatteringRelation(int stmtId,
 }
 
 void OslScop::addAccessRelation(int stmtId, bool isRead, mlir::Value memref,
-                                AffineValueMap &vMap,
+                                affine::AffineValueMap &vMap,
                                 affine::FlatAffineValueConstraints &domain) {
   affine::FlatAffineValueConstraints cst;
   // Insert the address dims and put constraints in it.
@@ -581,7 +581,7 @@ void OslScop::createConstraintRows(affine::FlatAffineValueConstraints &cst,
 }
 
 void OslScop::createAccessRelationConstraints(
-    mlir::AffineValueMap &vMap, mlir::affine::FlatAffineValueConstraints &cst,
+    mlir::affine::AffineValueMap &vMap, mlir::affine::FlatAffineValueConstraints &cst,
     mlir::affine::FlatAffineValueConstraints &domain) {
   cst.reset();
   cst.mergeAndAlignVarsWithOther(0, &domain);

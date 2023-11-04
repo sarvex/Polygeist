@@ -141,7 +141,7 @@ std::unique_ptr<OslScop> OslScopBuilder::build(mlir::func::FuncOp f) {
         LLVM_DEBUG(dbgs() << "Creating access relation for: " << *op << '\n');
 
         bool isRead = isa<mlir::AffineReadOpInterface>(op);
-        AffineValueMap vMap;
+        affine::AffineValueMap vMap;
         mlir::Value memref;
 
         stmt.getAccessMapAndMemRef(op, &vMap, &memref);

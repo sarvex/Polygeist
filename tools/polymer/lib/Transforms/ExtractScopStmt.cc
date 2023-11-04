@@ -232,7 +232,7 @@ static void getScopStmtOps(Operation *writeOp,
     // these allocation op, i.e., memref, will be treated as input arguments to
     // the new statement function.
     // Also, we should leave the dim SSA value in the original scope. Otherwise,
-    // if we consume it in the callee, the AffineValueMap built for the accesses
+    // if we consume it in the callee, the affine::AffineValueMap built for the accesses
     // that use this dim cannot relate it with the global context.
     if (isa<memref::AllocaOp, memref::AllocOp, memref::DimOp,
             mlir::AffineApplyOp>(op) ||

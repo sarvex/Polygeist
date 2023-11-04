@@ -15,8 +15,8 @@ namespace mlir {
 class Operation;
 namespace affine {
 class FlatAffineValueConstraints;
-}
 class AffineValueMap;
+}
 namespace func {
 class FuncOp;
 class CallOp;
@@ -49,9 +49,9 @@ public:
   mlir::func::FuncOp getCallee() const;
   /// Get the caller of this scop stmt.
   mlir::func::CallOp getCaller() const;
-  /// Get the access AffineValueMap of an op in the callee and the memref in the
+  /// Get the access affine::AffineValueMap of an op in the callee and the memref in the
   /// caller scope that this op is using.
-  void getAccessMapAndMemRef(mlir::Operation *op, mlir::AffineValueMap *vMap,
+  void getAccessMapAndMemRef(mlir::Operation *op, mlir::affine::AffineValueMap *vMap,
                              mlir::Value *memref) const;
 
 private:
