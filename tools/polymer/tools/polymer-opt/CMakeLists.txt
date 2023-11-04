@@ -8,12 +8,12 @@ add_llvm_tool(polymer-opt
 llvm_update_compile_flags(polymer-opt)
 target_link_libraries(polymer-opt
   PRIVATE
-  MLIRFunc
-  MLIRLLVMIR
+  MLIRFuncDialect
+  MLIRLLVMDialect
   MLIRAffineAnalysis
   MLIRAnalysis
   MLIRDialect
-  MLIRMath
+  MLIRMathDialect
   MLIROptLib
   MLIRParser
   MLIRPass

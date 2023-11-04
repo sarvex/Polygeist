@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   registry.insert<mlir::scf::SCFDialect>();
   registry.insert<mlir::memref::MemRefDialect>();
   registry.insert<mlir::math::MathDialect>();
-  registry.insert<mlir::arith::ArithmeticDialect>();
+  registry.insert<mlir::arith::ArithDialect>();
   registry.insert<mlir::LLVM::LLVMDialect>();
 
 // Register the standard passes we want.
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
   registerCanonicalizerPass();
   registerCSEPass();
   registerInlinerPass();
-  registerAffineScalarReplacementPass();
+  affine::registerAffineScalarReplacementPass();
   // Register polymer specific passes.
   registerPlutoTransformPass();
   registerRegToMemPass();
@@ -73,6 +73,5 @@ int main(int argc, char *argv[]) {
   // Register printer command line options.
   registerAsmPrinterCLOptions();
 
-  return failed(MlirOptMain(argc, argv, "Polymer optimizer driver", registry,
-                            /*preloadDialectsInContext=*/true));
+  return failed(MlirOptMain(argc, argv, "Polymer optimizer driver", registry));
 }

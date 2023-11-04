@@ -9,6 +9,7 @@
 #include "llvm/Support/InitLLVM.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Support/CommandLine.h"
 
 #include "mlir/Dialect/Affine/IR/AffineOps.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
@@ -20,6 +21,7 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/Support/FileUtilities.h"
 #include "mlir/Support/ToolUtilities.h"
+#include "mlir/Tools/mlir-translate/Translation.h"
 
 using namespace mlir;
 using namespace polymer;
@@ -56,7 +58,7 @@ int main(int argc, char *argv[]) {
   registerFromOpenScopTranslation();
 
   // Add flags for all the registered translations.
-  llvm::cl::opt<const TranslateFunction *, false, TranslationParser>
+  llvm::cl::opt<const Translation *, false, TranslationParser>
       translationRequested("", llvm::cl::desc("Translation to perform"),
                            llvm::cl::Required);
 
@@ -86,18 +88,18 @@ int main(int argc, char *argv[]) {
     // Nothing here is threaded.  Disable synchronization overhead.
     context.disableMultithreading();
 
-    llvm::SourceMgr sourceMgr;
-    sourceMgr.AddNewSourceBuffer(std::move(ownedBuffer), llvm::SMLoc());
+    auto sourceMgr = std::make_shared<llvm::SourceMgr>();
+    sourceMgr->AddNewSourceBuffer(std::move(ownedBuffer), llvm::SMLoc());
 
     if (!verifyDiagnostics) {
-      SourceMgrDiagnosticHandler sourceMgrHandler(sourceMgr, &context);
+      SourceMgrDiagnosticHandler sourceMgrHandler(*sourceMgr.get(), &context);
       return (*translationRequested)(sourceMgr, os, &context);
     }
 
     // In the diagnostic verification flow, we ignore whether the translation
     // failed (in most cases, it is expected to fail). Instead, we check if the
     // diagnostics were produced as expected.
-    SourceMgrDiagnosticVerifierHandler sourceMgrHandler(sourceMgr, &context);
+    SourceMgrDiagnosticVerifierHandler sourceMgrHandler(*sourceMgr.get(), &context);
     (*translationRequested)(sourceMgr, os, &context);
     return sourceMgrHandler.verify();
   };
