@@ -62,7 +62,7 @@ jobs:
       run: |
         cd build
         ls ../mlir-build/lib/cmake/clang
-        cmake ../src/ -GNinja -POLYGEIST_ENABLE_POLYMER -DMLIR_DIR=`pwd`/../mlir-build/lib/cmake/mlir -DLLVM_EXTERNAL_LIT=`pwd`/../mlir-build/bin/llvm-lit -DClang_DIR=`pwd`/../mlir-build/lib/cmake/clang -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_C_COMPILER=${{matrix.compiler}} -DCMAKE_CXX_COMPILER=${{matrix.cxxcompiler}}
+        cmake ../src/ -GNinja -DPOLYGEIST_ENABLE_POLYMER -DMLIR_DIR=`pwd`/../mlir-build/lib/cmake/mlir -DLLVM_EXTERNAL_LIT=`pwd`/../mlir-build/bin/llvm-lit -DClang_DIR=`pwd`/../mlir-build/lib/cmake/clang -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_C_COMPILER=${{matrix.compiler}} -DCMAKE_CXX_COMPILER=${{matrix.cxxcompiler}}
     - name: test cgeist
       run: |
         cd build
