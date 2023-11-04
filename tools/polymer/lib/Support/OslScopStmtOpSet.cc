@@ -50,12 +50,12 @@ LogicalResult OslScopStmtOpSet::getEnclosingOps(
 }
 
 LogicalResult
-OslScopStmtOpSet::getDomain(FlatAffineValueConstraints &domain,
+OslScopStmtOpSet::getDomain(affine::FlatAffineValueConstraints &domain,
                             SmallVectorImpl<mlir::Operation *> &enclosingOps) {
   return getIndexSet(enclosingOps, &domain);
 }
 
-LogicalResult OslScopStmtOpSet::getDomain(FlatAffineValueConstraints &domain) {
+LogicalResult OslScopStmtOpSet::getDomain(affine::FlatAffineValueConstraints &domain) {
   SmallVector<Operation *, 8> enclosingOps;
   if (failed(getEnclosingOps(enclosingOps)))
     return failure();

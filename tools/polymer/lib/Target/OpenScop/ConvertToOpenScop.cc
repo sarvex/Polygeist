@@ -65,14 +65,14 @@ private:
   /// Build the scop context. The domain of each scop stmt will be updated, by
   /// merging and aligning its IDs with the context as well.
   void buildScopContext(OslScop *scop, OslScop::ScopStmtMap *scopStmtMap,
-                        FlatAffineValueConstraints &ctx) const;
+                        affine::FlatAffineValueConstraints &ctx) const;
 };
 
 } // namespace
 
 /// Sometimes the domain generated might be malformed. It is always better to
 /// inform this at an early stage.
-static void sanityCheckDomain(FlatAffineValueConstraints &dom) {
+static void sanityCheckDomain(affine::FlatAffineValueConstraints &dom) {
   if (dom.isEmpty()) {
     llvm::errs() << "A domain is found to be empty!";
     dom.dump();
@@ -83,7 +83,7 @@ static void sanityCheckDomain(FlatAffineValueConstraints &dom) {
 std::unique_ptr<OslScop> OslScopBuilder::build(mlir::func::FuncOp f) {
 
   /// Context constraints.
-  FlatAffineValueConstraints ctx;
+  affine::FlatAffineValueConstraints ctx;
 
   // Initialize a new Scop per FuncOp. The osl_scop object within it will be
   // created. It doesn't contain any fields, and this may incur some problems,
@@ -113,7 +113,7 @@ std::unique_ptr<OslScop> OslScopBuilder::build(mlir::func::FuncOp f) {
     });
 
     // Collet the domain
-    FlatAffineValueConstraints domain = *stmt.getDomain();
+    affine::FlatAffineValueConstraints domain = *stmt.getDomain();
     sanityCheckDomain(domain);
 
     LLVM_DEBUG({
@@ -197,7 +197,7 @@ void OslScopBuilder::buildScopStmtMap(mlir::func::FuncOp f,
 
 void OslScopBuilder::buildScopContext(OslScop *scop,
                                       OslScop::ScopStmtMap *scopStmtMap,
-                                      FlatAffineValueConstraints &ctx) const {
+                                      affine::FlatAffineValueConstraints &ctx) const {
   LLVM_DEBUG(dbgs() << "--- Building SCoP context ...\n");
 
   // First initialize the symbols of the ctx by the order of arg number.
@@ -232,8 +232,8 @@ void OslScopBuilder::buildScopContext(OslScop *scop,
   // mess up with the original domain at this point. Trivial redundant
   // constraints will be removed.
   for (const auto &it : *scopStmtMap) {
-    FlatAffineValueConstraints *domain = it.second.getDomain();
-    FlatAffineValueConstraints cst(*domain);
+    affine::FlatAffineValueConstraints *domain = it.second.getDomain();
+    affine::FlatAffineValueConstraints cst(*domain);
 
     LLVM_DEBUG(dbgs() << "Statement:\n");
     LLVM_DEBUG(it.second.getCaller().dump());
@@ -276,7 +276,7 @@ void OslScopBuilder::buildScopContext(OslScop *scop,
 
   // Add and align domain SYMBOL columns.
   for (const auto &it : *scopStmtMap) {
-    FlatAffineValueConstraints *domain = it.second.getDomain();
+    affine::FlatAffineValueConstraints *domain = it.second.getDomain();
     // For any symbol missing in the domain, add them directly to the end.
     for (unsigned i = 0; i < ctx.getNumSymbolVars(); ++i) {
       unsigned pos;

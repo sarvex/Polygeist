@@ -169,7 +169,7 @@ void OslScop::addRelation(int target, int type, int numRows, int numCols,
   }
 }
 
-void OslScop::addContextRelation(FlatAffineValueConstraints cst) {
+void OslScop::addContextRelation(affine::FlatAffineValueConstraints cst) {
   // Project out the dim IDs in the context with only the symbol IDs left.
   SmallVector<mlir::Value, 8> dimValues;
   cst.getValues(0, cst.getNumDimVars(), &dimValues);
@@ -194,7 +194,7 @@ void OslScop::addContextRelation(FlatAffineValueConstraints cst) {
               cst.getNumSymbolVars(), eqs, inEqs);
 }
 
-void OslScop::addDomainRelation(int stmtId, FlatAffineValueConstraints &cst) {
+void OslScop::addDomainRelation(int stmtId, affine::FlatAffineValueConstraints &cst) {
   SmallVector<int64_t, 8> eqs, inEqs;
   createConstraintRows(cst, eqs);
   createConstraintRows(cst, inEqs, /*isEq=*/false);
@@ -205,7 +205,7 @@ void OslScop::addDomainRelation(int stmtId, FlatAffineValueConstraints &cst) {
 }
 
 void OslScop::addScatteringRelation(int stmtId,
-                                    mlir::FlatAffineValueConstraints &cst,
+                                    mlir::affine::FlatAffineValueConstraints &cst,
                                     llvm::ArrayRef<mlir::Operation *> ops) {
   // First insert the enclosing ops into the scat tree.
   SmallVector<unsigned, 8> scats;
@@ -254,15 +254,15 @@ void OslScop::addScatteringRelation(int stmtId,
 
 void OslScop::addAccessRelation(int stmtId, bool isRead, mlir::Value memref,
                                 AffineValueMap &vMap,
-                                FlatAffineValueConstraints &domain) {
-  FlatAffineValueConstraints cst;
+                                affine::FlatAffineValueConstraints &domain) {
+  affine::FlatAffineValueConstraints cst;
   // Insert the address dims and put constraints in it.
   createAccessRelationConstraints(vMap, cst, domain);
 
   // Create a new dim of memref and set its value to its corresponding ID.
   memRefIdMap.try_emplace(memref, memRefIdMap.size() + 1);
   cst.insertDimVar(0, memref);
-  cst.addBound(mlir::FlatAffineValueConstraints::BoundType::EQ, 0,
+  cst.addBound(mlir::affine::FlatAffineValueConstraints::BoundType::EQ, 0,
                memRefIdMap[memref]);
   // cst.setIdToConstant(0, memRefIdMap[memref]);
 
@@ -490,7 +490,7 @@ void OslScop::addBodyExtension(int stmtId, const ScopStmt &stmt) {
 }
 
 void OslScop::initializeSymbolTable(mlir::func::FuncOp f,
-                                    FlatAffineValueConstraints *cst) {
+                                    affine::FlatAffineValueConstraints *cst) {
   symbolTable.clear();
 
   unsigned numDimIds = cst->getNumDimVars();
@@ -551,7 +551,7 @@ bool OslScop::isConstantSymbol(llvm::StringRef name) const {
   return name.startswith("C");
 }
 
-void OslScop::createConstraintRows(FlatAffineValueConstraints &cst,
+void OslScop::createConstraintRows(affine::FlatAffineValueConstraints &cst,
                                    SmallVectorImpl<int64_t> &rows, bool isEq) {
   unsigned numRows = isEq ? cst.getNumEqualities() : cst.getNumInequalities();
   unsigned numDimIds = cst.getNumDimVars();
@@ -581,8 +581,8 @@ void OslScop::createConstraintRows(FlatAffineValueConstraints &cst,
 }
 
 void OslScop::createAccessRelationConstraints(
-    mlir::AffineValueMap &vMap, mlir::FlatAffineValueConstraints &cst,
-    mlir::FlatAffineValueConstraints &domain) {
+    mlir::AffineValueMap &vMap, mlir::affine::FlatAffineValueConstraints &cst,
+    mlir::affine::FlatAffineValueConstraints &domain) {
   cst.reset();
   cst.mergeAndAlignVarsWithOther(0, &domain);
 

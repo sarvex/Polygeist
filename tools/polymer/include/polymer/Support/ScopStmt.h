@@ -13,7 +13,9 @@
 #include "llvm/ADT/SmallVector.h"
 namespace mlir {
 class Operation;
+namespace affine {
 class FlatAffineValueConstraints;
+}
 class AffineValueMap;
 namespace func {
 class FuncOp;
@@ -38,7 +40,7 @@ public:
   ScopStmt &operator=(ScopStmt &&);
   ScopStmt &operator=(const ScopStmt &&) = delete;
 
-  mlir::FlatAffineValueConstraints *getDomain() const;
+  mlir::affine::FlatAffineValueConstraints *getDomain() const;
 
   /// Get a copy of the enclosing operations.
   void getEnclosingOps(llvm::SmallVectorImpl<mlir::Operation *> &ops,

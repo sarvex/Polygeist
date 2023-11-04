@@ -583,7 +583,7 @@ getEnclosingAffineForOps(mlir::Operation *op, mlir::Operation *topOp,
 
 static void getScratchpadIterDomains(
     mlir::Value spad,
-    mlir::SmallVectorImpl<FlatAffineValueConstraints> &indexSets) {
+    mlir::SmallVectorImpl<affine::FlatAffineValueConstraints> &indexSets) {
   mlir::SmallPtrSet<mlir::Operation *, 4> parentVisited;
   for (mlir::Operation *user : spad.getUsers()) {
     mlir::Operation *parent = user->getParentOp();
@@ -595,7 +595,7 @@ static void getScratchpadIterDomains(
     getEnclosingAffineForOps(user, spad.getParentBlock()->getParentOp(),
                              forOps);
 
-    FlatAffineValueConstraints domain;
+    affine::FlatAffineValueConstraints domain;
     assert(succeeded(getIndexSet(forOps, &domain)) &&
            "Cannot get the iteration domain of the given forOps");
 
@@ -604,15 +604,15 @@ static void getScratchpadIterDomains(
 }
 
 static void getNonZeroDims(ArrayRef<int64_t> coeffs,
-                           const FlatAffineValueConstraints &cst,
+                           const affine::FlatAffineValueConstraints &cst,
                            SmallVectorImpl<int64_t> &dims) {
   for (unsigned int i = 0; i < coeffs.size(); i++)
     if (coeffs[i] != 0 && i < cst.getNumDimVars())
       dims.push_back(i);
 }
 
-static FlatAffineValueConstraints
-unionScratchpadIterDomains(mlir::ArrayRef<FlatAffineValueConstraints> domains) {
+static affine::FlatAffineValueConstraints
+unionScratchpadIterDomains(mlir::ArrayRef<affine::FlatAffineValueConstraints> domains) {
   unsigned int maxDepth = 0;
   llvm::SetVector<mlir::Value> unionSymbols;
   SmallVector<mlir::Value, 4> domainSymbols;
@@ -631,7 +631,7 @@ unionScratchpadIterDomains(mlir::ArrayRef<FlatAffineValueConstraints> domains) {
 
   // Create the union domain with maxDepth number of dims and the union of all
   // symbols appeared.
-  FlatAffineValueConstraints unionDomain(/*numDims=*/maxDepth,
+  affine::FlatAffineValueConstraints unionDomain(/*numDims=*/maxDepth,
                                          /*numSymbols=*/unionSymbols.size());
   for (auto symbol : enumerate(unionSymbols))
     unionDomain.setValue(symbol.index() + unionDomain.getNumDimVars(),
@@ -678,7 +678,7 @@ unionScratchpadIterDomains(mlir::ArrayRef<FlatAffineValueConstraints> domains) {
 }
 
 static void getLowerOrUpperBound(unsigned int dimId, bool isUpper,
-                                 const FlatAffineValueConstraints &domain,
+                                 const affine::FlatAffineValueConstraints &domain,
                                  mlir::AffineMap &affMap,
                                  llvm::SmallVectorImpl<mlir::Value> &operands,
                                  OpBuilder &b) {
@@ -755,7 +755,7 @@ static mlir::Value findInsertionPointAfter(mlir::func::FuncOp f, mlir::Value spa
 
 static memref::AllocaOp
 createScratchpadAllocaOp(mlir::func::FuncOp f, mlir::Value spad,
-                         const FlatAffineValueConstraints &domain,
+                         const affine::FlatAffineValueConstraints &domain,
                          OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
 
@@ -845,9 +845,9 @@ static void resetLoadAndStoreOpsToScratchpad(mlir::func::FuncOp f, mlir::Value s
 /// Expand scratchpad based on its deepest/widest loop nest.
 /// TODO: allow expansion to a specific depth.
 static void expandScratchpad(mlir::func::FuncOp f, mlir::Value spad, OpBuilder &b) {
-  mlir::SmallVector<FlatAffineValueConstraints, 4> domains;
+  mlir::SmallVector<affine::FlatAffineValueConstraints, 4> domains;
   getScratchpadIterDomains(spad, domains);
-  FlatAffineValueConstraints unionDomain = unionScratchpadIterDomains(domains);
+  affine::FlatAffineValueConstraints unionDomain = unionScratchpadIterDomains(domains);
 
   mlir::Value newSpad =
       annotateScratchpad(createScratchpadAllocaOp(f, spad, unionDomain, b));

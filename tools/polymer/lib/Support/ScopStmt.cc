@@ -55,7 +55,7 @@ public:
   /// The scop.stmt callee.
   mlir::func::FuncOp callee;
   /// The domain of the caller.
-  FlatAffineValueConstraints domain;
+  affine::FlatAffineValueConstraints domain;
   /// Enclosing for/if operations for the caller.
   EnclosingOpList enclosingOps;
 };
@@ -92,7 +92,7 @@ static BlockArgument findTopLevelBlockArgument(mlir::Value val) {
 }
 
 static void
-promoteSymbolToTopLevel(mlir::Value val, FlatAffineValueConstraints &domain,
+promoteSymbolToTopLevel(mlir::Value val, affine::FlatAffineValueConstraints &domain,
                         llvm::DenseMap<mlir::Value, mlir::Value> &symMap) {
   BlockArgument arg = findTopLevelBlockArgument(val);
   assert(isa<mlir::func::FuncOp>(arg.getOwner()->getParentOp()) &&
@@ -110,7 +110,7 @@ promoteSymbolToTopLevel(mlir::Value val, FlatAffineValueConstraints &domain,
   symMap[val] = arg;
 }
 
-static void reorderSymbolsByOperandId(FlatAffineValueConstraints &cst) {
+static void reorderSymbolsByOperandId(affine::FlatAffineValueConstraints &cst) {
   // bubble sort
   for (unsigned i = cst.getNumDimVars(); i < cst.getNumDimAndSymbolVars(); ++i)
     for (unsigned j = i + 1; j < cst.getNumDimAndSymbolVars(); ++j) {
@@ -174,7 +174,7 @@ ScopStmt::~ScopStmt() = default;
 ScopStmt::ScopStmt(ScopStmt &&) = default;
 ScopStmt &ScopStmt::operator=(ScopStmt &&) = default;
 
-FlatAffineValueConstraints *ScopStmt::getDomain() const {
+affine::FlatAffineValueConstraints *ScopStmt::getDomain() const {
   return &(impl->domain);
 }
 

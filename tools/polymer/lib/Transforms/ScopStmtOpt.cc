@@ -106,7 +106,7 @@ static Operation *apply(mlir::AffineMap affMap, ValueRange operands,
   return b.create<mlir::AffineApplyOp>(call.getLoc(), affMap, newOperands);
 }
 
-static void projectAllOutExcept(FlatAffineValueConstraints &cst,
+static void projectAllOutExcept(affine::FlatAffineValueConstraints &cst,
                                 llvm::SetVector<mlir::Value> ids) {
   SmallVector<Value, 4> dims;
   cst.getValues(0, cst.getNumDimVars(), &dims);
@@ -134,7 +134,7 @@ static void getMemRefSize(MutableArrayRef<mlir::AffineForOp> forOps, FuncOp f,
     indices.insert(forOps[i].getInductionVar());
 
   // Get the constraints imposed by the whole set of nested loops.
-  FlatAffineValueConstraints cst;
+  affine::FlatAffineValueConstraints cst;
   SmallVector<Operation *, 4> enclosingOps{forOps.begin(), forOps.end()};
   assert(succeeded(getIndexSet(enclosingOps, &cst)));
 
