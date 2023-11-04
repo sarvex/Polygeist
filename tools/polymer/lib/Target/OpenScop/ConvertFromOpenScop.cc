@@ -38,6 +38,7 @@ extern "C" {
 #include "mlir/IR/Dominance.h"
 #include "mlir/IR/IntegerSet.h"
 #include "mlir/IR/MLIRContext.h"
+#include "mlir/Tools/mlir-translate/Translation.h"
 
 #include "llvm/Support/Error.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -1256,7 +1257,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
       UnknownLoc::get(context), lbOperands, lbMap, ubOperands, ubMap, stride);
 
   // Update the loop IV mapping.
-  auto &entryBlock = *forOp.getLoopBody().getBlocks().begin();
+  auto &entryBlock = *forOp.getBody();
   // TODO: confirm is there a case that forOp has multiple operands.
   assert(entryBlock.getNumArguments() == 1 &&
          "affine.for should only have one block argument (iv).");
@@ -1271,7 +1272,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
 
   // Create the loop body
   b.setInsertionPointToStart(&entryBlock);
-  entryBlock.walk([&](mlir::AffineYieldOp op) { b.setInsertionPoint(op); });
+  entryBlock.walk([&](mlir::affine::AffineYieldOp op) { b.setInsertionPoint(op); });
   assert(processStmtList(forStmt->body).succeeded());
   b.setInsertionPointAfter(forOp);
 
@@ -1286,7 +1287,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
   // Finally, we will move this affine.for op into a FuncOp if it uses values
   // defined by affine.min/max as loop bound operands.
   auto isMinMaxDefined = [](mlir::Value operand) {
-    return isa_and_nonnull<mlir::affine::AffineMaxOp, mlir::AffineMinOp>(
+    return isa_and_nonnull<mlir::affine::AffineMaxOp, mlir::affine::AffineMinOp>(
         operand.getDefiningOp());
   };
 
@@ -1304,7 +1305,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
 
   // Create the function body
   mlir::FunctionType funcTy =
-      b.getFunctionType(TypeRange(args.getArrayRef()), llvm::None);
+      b.getFunctionType(TypeRange(args.getArrayRef()), {});
   b.setInsertionPoint(&*getFuncInsertPt());
   mlir::func::FuncOp func = b.create<mlir::func::FuncOp>(
       forOp->getLoc(), std::string("T") + std::to_string(numInternalFunctions),
@@ -1315,7 +1316,7 @@ LogicalResult Importer::processStmt(clast_for *forStmt) {
   vMap.map(args, func.getArguments());
   b.setInsertionPointToStart(newEntry);
   b.clone(*forOp.getOperation(), vMap);
-  b.create<mlir::func::ReturnOp>(func.getLoc(), {});
+  b.create<mlir::func::ReturnOp>(func.getLoc());
 
   // Create function call.
   b.setInsertionPointAfter(forOp);
@@ -1360,7 +1361,7 @@ LogicalResult Importer::processStmt(clast_assignment *ass) {
       op = b.create<mlir::affine::AffineMaxOp>(b.getUnknownLoc(), substMap,
                                        substOperands);
     else
-      op = b.create<mlir::AffineMinOp>(b.getUnknownLoc(), substMap,
+      op = b.create<mlir::affine::AffineMinOp>(b.getUnknownLoc(), substMap,
                                        substOperands);
   }
 
@@ -1566,7 +1567,7 @@ namespace polymer {
 
 void registerFromOpenScopTranslation() {
   TranslateToMLIRRegistration fromLLVM(
-      "import-scop", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
+      "import-scop", "Import SCOP", [](llvm::SourceMgr &sourceMgr, MLIRContext *context) {
         return ::translateOpenScopToModule(sourceMgr, context);
       });
 }

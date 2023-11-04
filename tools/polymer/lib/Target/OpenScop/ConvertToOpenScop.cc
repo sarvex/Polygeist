@@ -26,6 +26,7 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
+#include "mlir/Tools/mlir-translate/Translation.h"
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SetVector.h"
@@ -434,5 +435,5 @@ static LogicalResult emitOpenScop(ModuleOp module, llvm::raw_ostream &os) {
 }
 
 void polymer::registerToOpenScopTranslation() {
-  static TranslateFromMLIRRegistration toOpenScop("export-scop", emitOpenScop);
+  static TranslateFromMLIRRegistration toOpenScop("export-scop", "Export SCOP", emitOpenScop);
 }

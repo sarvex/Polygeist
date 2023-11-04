@@ -413,14 +413,14 @@ static void findReductionLoops(mlir::func::FuncOp f,
   });
 }
 
-static mlir::AffineYieldOp findYieldOp(mlir::affine::AffineForOp forOp) {
+static mlir::affine::AffineYieldOp findYieldOp(mlir::affine::AffineForOp forOp) {
   mlir::Operation *retOp;
-  forOp.walk([&](mlir::AffineYieldOp yieldOp) { retOp = yieldOp; });
+  forOp.walk([&](mlir::affine::AffineYieldOp yieldOp) { retOp = yieldOp; });
 
   assert(retOp != nullptr);
-  assert(isa<mlir::AffineYieldOp>(retOp));
+  assert(isa<mlir::affine::AffineYieldOp>(retOp));
 
-  return cast<mlir::AffineYieldOp>(retOp);
+  return cast<mlir::affine::AffineYieldOp>(retOp);
 }
 
 static mlir::Value createIterScratchpad(mlir::Value iterArg,
@@ -463,7 +463,7 @@ static void replaceIterArg(mlir::Value origIterArg, mlir::Value spadIterArg) {
   origIterArg.replaceAllUsesWith(spadIterArg);
 }
 
-static void storeIterArg(int idx, mlir::Value spad, mlir::AffineYieldOp yieldOp,
+static void storeIterArg(int idx, mlir::Value spad, mlir::affine::AffineYieldOp yieldOp,
                          OpBuilder &b) {
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPoint(yieldOp);
@@ -500,7 +500,7 @@ static mlir::affine::AffineForOp cloneAffineForWithoutIterArgs(mlir::affine::Aff
 
   b.setInsertionPointToStart(newForOp.getBody());
   forOp.walk([&](mlir::Operation *op) {
-    if (!isa<mlir::AffineYieldOp>(op) && op->getParentOp() == forOp)
+    if (!isa<mlir::affine::AffineYieldOp>(op) && op->getParentOp() == forOp)
       b.clone(*op, mapping);
   });
 
@@ -511,7 +511,7 @@ static void demoteLoopReduction(mlir::func::FuncOp f, mlir::affine::AffineForOp 
                                 OpBuilder &b) {
   SmallVector<mlir::Value, 4> initVals{forOp.getIterOperands()};
   mlir::Block *body = forOp.getBody();
-  mlir::AffineYieldOp yieldOp = findYieldOp(forOp);
+  mlir::affine::AffineYieldOp yieldOp = findYieldOp(forOp);
 
   IterArgToMemMap iterArgToMem;
   for (auto initVal : enumerate(initVals)) {
@@ -777,7 +777,7 @@ createScratchpadAllocaOp(mlir::func::FuncOp f, mlir::Value spad,
     getLowerOrUpperBound(i, false, domain, lbMap, lbOperands, b);
 
     mlir::Value lb =
-        b.create<mlir::AffineMinOp>(spad.getLoc(), lbMap, lbOperands);
+        b.create<mlir::affine::AffineMinOp>(spad.getLoc(), lbMap, lbOperands);
     mlir::Value ub =
         b.create<mlir::affine::AffineMaxOp>(spad.getLoc(), ubMap, ubOperands);
     mlir::Value size = b.create<mlir::affine::AffineApplyOp>(
