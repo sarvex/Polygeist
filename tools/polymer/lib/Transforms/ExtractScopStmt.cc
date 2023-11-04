@@ -484,7 +484,7 @@ static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
     OpBuilder::InsertionGuard guard(b);
     b.setInsertionPointAfter(storeOp);
 
-    MemRefAccess access(storeOp);
+    affine::MemRefAccess access(storeOp);
     mlir::affine::AffineLoadOp loadOp =
         b.create<mlir::affine::AffineLoadOp>(storeOp.getLoc(), storeOp.getMemRef(),
                                      storeOp.getAffineMap(), access.indices);

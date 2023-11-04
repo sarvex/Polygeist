@@ -706,7 +706,7 @@ struct UnifyScratchpadPass
 } // namespace
 
 static void findAccessPatterns(Operation *op,
-                               SmallVectorImpl<mlir::MemRefAccess> &accesses) {
+                               SmallVectorImpl<mlir::affine::MemRefAccess> &accesses) {
   std::queue<Operation *> worklist;
   SmallPtrSet<Operation *, 8> visited;
   worklist.push(op);
@@ -721,7 +721,7 @@ static void findAccessPatterns(Operation *op,
       std::copy(mapOperands.begin(), mapOperands.end(),
                 std::back_inserter(ivs));
 
-      accesses.push_back(MemRefAccess(loadOp));
+      accesses.push_back(affine::MemRefAccess(loadOp));
       continue;
     }
 
@@ -792,12 +792,12 @@ static bool satisfySplitHeuristic(mlir::affine::AffineStoreOp op) {
     return false;
 
   // Find if there are at least two different access patterns on the RHS.
-  SmallVector<MemRefAccess, 4> accesses;
+  SmallVector<affine::MemRefAccess, 4> accesses;
   findAccessPatterns(op, accesses);
 
   // Check if all memref access are to the same memref.
   bool allAccessToSame = true;
-  for (MemRefAccess access : accesses)
+  for (affine::MemRefAccess access : accesses)
     if (access.memref != op.getMemRef()) {
       allAccessToSame = false;
       break;

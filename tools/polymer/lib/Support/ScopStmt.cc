@@ -124,7 +124,7 @@ static void reorderSymbolsByOperandId(affine::FlatAffineValueConstraints &cst) {
 void ScopStmtImpl::initializeDomainAndEnclosingOps() {
   // Extract the affine for/if ops enclosing the caller and insert them into the
   // enclosingOps list.
-  getEnclosingAffineForAndIfOps(*caller, &enclosingOps);
+  affine::getEnclosingAffineForAndIfOps(*caller, &enclosingOps);
 
   // The domain constraints can then be collected from the enclosing ops.
   assert(succeeded(getIndexSet(enclosingOps, &domain)));
@@ -215,7 +215,7 @@ void ScopStmt::getAccessMapAndMemRef(mlir::Operation *op,
   impl->getArgsValueMapping(argMap);
 
   // TODO: assert op is in the callee.
-  MemRefAccess access(op);
+  affine::MemRefAccess access(op);
 
   // Collect the access affine::AffineValueMap that binds to operands in the callee.
   affine::AffineValueMap aMap;
