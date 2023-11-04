@@ -444,7 +444,7 @@ static void storeInitValue(mlir::Value initVal, mlir::Value spad,
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPointAfterValue(spad);
   b.create<mlir::affine::AffineStoreOp>(spad.getLoc(), initVal, spad,
-                                b.getConstantAffineMap(0));
+                                b.getConstantAffineMap(0), ValueRange());
 }
 
 static mlir::Value loadIterArg(mlir::Value iterArg,
@@ -456,7 +456,7 @@ static mlir::Value loadIterArg(mlir::Value iterArg,
   assert(iterArgToMem.count(iterArg));
 
   return b.create<mlir::affine::AffineLoadOp>(forOp.getLoc(), iterArgToMem[iterArg],
-                                      b.getConstantAffineMap(0));
+                                      b.getConstantAffineMap(0), ValueRange());
 }
 
 static void replaceIterArg(mlir::Value origIterArg, mlir::Value spadIterArg) {
@@ -468,7 +468,7 @@ static void storeIterArg(int idx, mlir::Value spad, mlir::affine::AffineYieldOp 
   OpBuilder::InsertionGuard guard(b);
   b.setInsertionPoint(yieldOp);
   b.create<mlir::affine::AffineStoreOp>(yieldOp.getLoc(), yieldOp.getOperand(idx), spad,
-                                b.getConstantAffineMap(0));
+                                b.getConstantAffineMap(0), ValueRange());
 }
 
 static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::affine::AffineForOp forOp,
@@ -477,7 +477,7 @@ static mlir::Value loadFinalIterVal(mlir::Value spad, mlir::affine::AffineForOp 
   b.setInsertionPointAfter(forOp);
 
   return b.create<mlir::affine::AffineLoadOp>(forOp.getLoc(), spad,
-                                      b.getConstantAffineMap(0));
+                                      b.getConstantAffineMap(0), ValueRange());
 }
 
 static void replaceResult(int idx, mlir::affine::AffineForOp forOp,
