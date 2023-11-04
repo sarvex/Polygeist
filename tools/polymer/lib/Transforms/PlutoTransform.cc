@@ -222,7 +222,7 @@ static void plutoParallelize(mlir::affine::AffineForOp forOp, OpBuilder b) {
   ValueRange upperBoundOperands = forOp.getUpperBoundOperands();
 
   // Creating empty 1-D affine.parallel op.
-  mlir::AffineParallelOp newPloop = b.create<mlir::AffineParallelOp>(
+  mlir::affine::AffineParallelOp newPloop = b.create<mlir::affine::AffineParallelOp>(
       loc, llvm::None, llvm::None, lowerBoundMap, lowerBoundOperands,
       upperBoundMap, upperBoundOperands, 1);
   // Steal the body of the old affine for op and erase it.
