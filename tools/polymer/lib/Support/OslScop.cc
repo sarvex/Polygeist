@@ -583,7 +583,7 @@ void OslScop::createConstraintRows(affine::FlatAffineValueConstraints &cst,
 void OslScop::createAccessRelationConstraints(
     mlir::affine::AffineValueMap &vMap, mlir::affine::FlatAffineValueConstraints &cst,
     mlir::affine::FlatAffineValueConstraints &domain) {
-  cst.reset();
+  cst = mlir::affine::FlatAffineValueConstraints();
   cst.mergeAndAlignVarsWithOther(0, &domain);
 
   LLVM_DEBUG({
@@ -593,7 +593,7 @@ void OslScop::createAccessRelationConstraints(
   });
 
   SmallVector<mlir::Value, 8> idValues;
-  domain.getAllValues(&idValues);
+  domain.getValues(0, domain.getNumDimAndSymbolVars(), &idValues);
   llvm::SetVector<mlir::Value> idValueSet;
   for (auto val : idValues)
     idValueSet.insert(val);
