@@ -46,7 +46,7 @@ using CalleeToCallersMap =
 static void discoverMemWriteOps(mlir::func::FuncOp f,
                                 SmallVectorImpl<Operation *> &ops) {
   f.getOperation()->walk([&](Operation *op) {
-    if (isa<mlir::AffineWriteOpInterface>(op))
+    if (op->hasTrait<mlir::affine::detail::AffineWriteOpInterfaceTrait>())
       ops.push_back(op);
   });
 }
@@ -86,7 +86,7 @@ insertScratchpadForInterprocUses(mlir::Operation *defOp,
   mlir::BlockArgument scratchpad =
       calleeEntryBlock.addArgument(memrefType, b.getUnknownLoc());
   callee.setType(b.getFunctionType(
-      TypeRange(calleeEntryBlock.getArgumentTypes()), llvm::None));
+                     TypeRange(calleeEntryBlock.getArgumentTypes()), {}));
 
   // Store within the callee for the used value.
   b.setInsertionPointAfter(defInCalleeOp);
@@ -238,7 +238,7 @@ static void getScopStmtOps(Operation *writeOp,
             mlir::affine::AffineApplyOp>(op) ||
         (isa<mlir::arith::IndexCastOp>(op) &&
          op->getOperand(0).isa<BlockArgument>() &&
-         isa<FuncOp>(op->getOperand(0)
+         isa<func::FuncOp>(op->getOperand(0)
                          .cast<BlockArgument>()
                          .getOwner()
                          ->getParentOp()))) {
@@ -298,7 +298,7 @@ static mlir::func::FuncOp createCallee(StringRef calleeName,
   // Get a list of types of all function arguments, and use it to create the
   // function type.
   TypeRange argTypes = ValueRange(args.getArrayRef()).getTypes();
-  mlir::FunctionType calleeType = b.getFunctionType(argTypes, llvm::None);
+  mlir::FunctionType calleeType = b.getFunctionType(argTypes, {});
 
   // Insert the new callee before the end of the module body.
   OpBuilder::InsertionGuard guard(b);
