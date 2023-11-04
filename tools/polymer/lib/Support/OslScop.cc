@@ -262,7 +262,7 @@ void OslScop::addAccessRelation(int stmtId, bool isRead, mlir::Value memref,
   // Create a new dim of memref and set its value to its corresponding ID.
   memRefIdMap.try_emplace(memref, memRefIdMap.size() + 1);
   cst.insertDimVar(0, memref);
-  cst.addBound(mlir::affine::FlatAffineValueConstraints::BoundType::EQ, 0,
+  cst.addBound(mlir::presburger::BoundType::EQ, 0,
                memRefIdMap[memref]);
   // cst.setIdToConstant(0, memRefIdMap[memref]);
 
