@@ -138,10 +138,12 @@ std::unique_ptr<OslScop> OslScopBuilder::build(mlir::func::FuncOp f) {
     scop->addDomainRelation(stmtId, domain);
     scop->addScatteringRelation(stmtId, domain, enclosingOps);
     callee.walk([&](mlir::Operation *op) {
-      if (isa<mlir::AffineReadOpInterface, mlir::AffineWriteOpInterface>(op)) {
+      if (op->hasTrait<mlir::affine::detail::AffineReadOpInterfaceTrait>() ||
+          op->hasTrait<mlir::affine::detail::AffineWriteOpInterfaceTrait>()) {
         LLVM_DEBUG(dbgs() << "Creating access relation for: " << *op << '\n');
 
-        bool isRead = isa<mlir::AffineReadOpInterface>(op);
+        bool isRead =
+            op->hasTrait<mlir::affine::detail::AffineReadOpInterfaceTrait>();
         affine::AffineValueMap vMap;
         mlir::Value memref;
 
@@ -224,7 +226,7 @@ void OslScopBuilder::buildScopContext(OslScop *scop,
         symbols.insert(it, sym);
     }
   }
-  ctx.reset(/*numDims=*/0, /*numSymbols=*/symbols.size());
+  ctx = affine::FlatAffineValueConstraints();
   ctx.setValues(0, symbols.size(), symbols);
 
   // Union with the domains of all Scop statements. We first merge and align the
