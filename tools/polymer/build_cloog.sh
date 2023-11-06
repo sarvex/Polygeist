@@ -9,6 +9,15 @@ echo Starting pluto build script with args "$@"
 # We assume build dir is absolute
 ROOT_DIR="$1"
 
+if [ "$ROOT_DIR" = "" ]; then
+    echo No arg specified
+    exit
+fi
+if [[ ! "$ROOT_DIR" = /* ]]; then
+    echo Need an absolute path for pluto build dir
+fi
+
+
 echo BUILDING CLOOG IN DIR "$ROOT_DIR"
 
 
