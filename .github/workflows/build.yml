@@ -57,9 +57,7 @@ jobs:
       if: steps.cache-pluto.outputs.cache-hit != 'true'
       run: |
         mkdir pluto-build
-        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_pluto.sh $(pwd)/pluto-build
-        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_openscop.sh $(pwd)/pluto-build
-        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_cloog.sh $(pwd)/pluto-build
+        PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_polymer_deps.sh $(pwd)/pluto-build
         sleep 1s
 
     - name: MLIR build
