@@ -23,7 +23,7 @@ PLUTO_LLVM_SRC_DIR="$PLUTO_LLVM_PREFIX/llvm-project"
 PLUTO_LLVM_BUILD_DIR="$PLUTO_LLVM_PREFIX/build"
 PLUTO_LLVM_INSTALL_DIR="$PLUTO_LLVM_PREFIX/install"
 
-if ! test -d "$ROOT_LLVM_PREFIX"; then
+if ! test -f "$PLUTO_LLVM_INSTALL_DIR/.DONE"; then
     mkdir -p "$PLUTO_LLVM_PREFIX"
     cd "$PLUTO_LLVM_PREFIX"
 
@@ -41,6 +41,7 @@ if ! test -d "$ROOT_LLVM_PREFIX"; then
     cd "$PLUTO_LLVM_BUILD_DIR"
     cmake -G Ninja -DCMAKE_INSTALL_PREFIX="$PLUTO_LLVM_INSTALL_DIR" -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 "$PLUTO_LLVM_SRC_DIR/llvm"
     cmake --build . -j --target install
+    touch "$PLUTO_LLVM_INSTALL_DIR/.DONE"
 fi
 
 echo BUILDING PLUTO IN DIR "$ROOT_DIR"
@@ -49,7 +50,7 @@ PLUTO_PREFIX="$ROOT_DIR/pluto"
 PLUTO_SRC_DIR="$PLUTO_PREFIX/pluto"
 PLUTO_INSTALL_DIR="$PLUTO_PREFIX/install"
 
-if ! test -d "$PLUTO_PREFIX"; then
+if ! test -f "$PLUTO_PREFIX/.DONE"; then
     mkdir -p "$PLUTO_PREFIX"
     cd "$PLUTO_PREFIX"
 
@@ -61,7 +62,8 @@ if ! test -d "$PLUTO_PREFIX"; then
 
     ./autogen.sh
     ./configure --prefix="$PLUTO_INSTALL_DIR" --with-clang-prefix="$PLUTO_LLVM_INSTALL_DIR"
-    make -j install
+    make -j install LDFLAGS="-L$PLUTO_LLVM_INSTALL_DIR/lib"
+    touch $PLUTO_PREFIX/.DONE
 fi
 
 echo BUILDING OPENSCOP IN DIR "$ROOT_DIR"
@@ -69,7 +71,7 @@ echo BUILDING OPENSCOP IN DIR "$ROOT_DIR"
 OPENSCOP_PREFIX="$ROOT_DIR/openscop"
 OPENSCOP_SRC_DIR="$OPENSCOP_PREFIX/openscop"
 OPENSCOP_INSTALL_DIR="$OPENSCOP_PREFIX/install"
-if ! test -d "$OPENSCOP_PREFIX"; then
+if ! test -f "$OPENSCOP_PREFIX/.DONE"; then
 
     mkdir -p "$OPENSCOP_PREFIX"
     cd "$OPENSCOP_PREFIX"
@@ -82,6 +84,7 @@ if ! test -d "$OPENSCOP_PREFIX"; then
 
     "./autogen.sh" && "./configure" --prefix="$OPENSCOP_INSTALL_DIR"
     make install -j
+    touch "$OPENSCOP_PREFIX/.DONE"
 fi
 
 echo BUILDING CLOOG IN DIR "$ROOT_DIR"
@@ -89,7 +92,7 @@ echo BUILDING CLOOG IN DIR "$ROOT_DIR"
 CLOOG_PREFIX="$ROOT_DIR/cloog"
 CLOOG_SRC_DIR="$CLOOG_PREFIX/cloog"
 CLOOG_INSTALL_DIR="$CLOOG_PREFIX/install"
-if ! test -d "$CLOOG_PREFIX"; then
+if ! test -f "$CLOOG_PREFIX/.DONE"; then
     mkdir -p "$CLOOG_PREFIX"
     cd "$CLOOG_PREFIX"
 
@@ -103,4 +106,5 @@ if ! test -d "$CLOOG_PREFIX"; then
     "./autogen.sh"
     "./configure" --prefix="$CLOOG_INSTALL_DIR" --with-osl-prefix="$ROOT_DIR/openscop/install"
     make install -j
+    touch "$CLOOG_PREFIX/.DONE"
 fi
