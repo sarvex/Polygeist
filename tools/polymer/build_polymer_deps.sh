@@ -45,6 +45,14 @@ if ! test -f "$PLUTO_LLVM_INSTALL_DIR/.DONE"; then
     touch "$PLUTO_LLVM_INSTALL_DIR/.DONE"
 fi
 
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+tree $PLUTO_LLVM_INSTALL_DIR
+echo "-------------------------------"
+find $ROOT_DIR -name libclang-cpp.so.10
+echo "-------------------------------"
+echo $PLUTO_LLVM_INSTALL_DIR
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+
 echo BUILDING PLUTO IN DIR "$ROOT_DIR"
 
 PLUTO_PREFIX="$ROOT_DIR/pluto"
