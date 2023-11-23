@@ -8,10 +8,11 @@ ROOT_DIR="$1"
 
 if [ "$ROOT_DIR" = "" ]; then
     echo No arg specified
-    exit
+    exit 1
 fi
 if [[ ! "$ROOT_DIR" = /* ]]; then
     echo Need an absolute path for pluto build dir
+    exit 1
 fi
 
 echo BUILDING PLUTO LLVM IN DIR "$ROOT_DIR"
