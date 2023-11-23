@@ -15,7 +15,7 @@ def AnnotateScop : Pass<"annotate-scop", "mlir::func::FuncOp"> {
       "functions",
       "std::string",   
       "A list of functions to be included.",
-      "llvm::cl::ZeroOrMore, llvm::cl::MiscFlags::CommaSeparated">
+      "llvm::cl::ZeroOrMore">
   ];
 }
 
