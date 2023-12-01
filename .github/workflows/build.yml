@@ -34,7 +34,7 @@ jobs:
 
     - name: Read LLVM commit
       id: getversion
-      run: echo "::set-output name=version::$(cat src/.git/modules/llvm-project/HEAD)"
+      run: echo "version=$(cat src/.git/modules/llvm-project/HEAD)" >> $GITHUB_OUTPUT
 
     - name: Cache Pluto
       id: cache-pluto
