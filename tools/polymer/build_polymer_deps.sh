@@ -71,7 +71,7 @@ if ! test -f "$PLUTO_PREFIX/.DONE"; then
 
     ./autogen.sh
     ./configure --prefix="$PLUTO_INSTALL_DIR" --with-clang-prefix="$PLUTO_LLVM_INSTALL_DIR"
-    LD_LIBRARY_PATH=$PLUTO_LLVM_INSTALL_DIR/lib LIBRARY_PATH=$PLUTO_LLVM_INSTALL_DIR/lib make -j install LDFLAGS="-rpath=$PLUTO_LLVM_INSTALL_DIR/lib -rpath-link=$PLUTO_LLVM_INSTALL_DIR/lib -L$PLUTO_LLVM_INSTALL_DIR/lib"
+    LD_LIBRARY_PATH=$PLUTO_LLVM_INSTALL_DIR/lib LIBRARY_PATH=$PLUTO_LLVM_INSTALL_DIR/lib make -j install LDFLAGS="-L$PLUTO_LLVM_INSTALL_DIR/lib"
     touch $PLUTO_PREFIX/.DONE
 fi
 
