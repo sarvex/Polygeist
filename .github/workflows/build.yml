@@ -84,3 +84,4 @@ jobs:
         ninja
         ninja check-polygeist-opt
         ninja check-cgeist
+        ninja check-polymer
