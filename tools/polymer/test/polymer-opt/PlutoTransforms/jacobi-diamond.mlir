@@ -24,10 +24,10 @@ func.func @jacobi(%A: memref<120xf32>, %B: memref<120xf32>) {
   %cst = arith.constant 0.333333 : f32
   affine.for %i = 0 to 40 {
     affine.for %j = 1 to 119 {
-      call @S0(%B, %j, %A): (memref<120xf32>, index, memref<120xf32>) -> ()
+      func.call @S0(%B, %j, %A): (memref<120xf32>, index, memref<120xf32>) -> ()
     }
     affine.for %j = 1 to 119 {
-      call @S1(%A, %j, %B): (memref<120xf32>, index, memref<120xf32>) -> ()
+      func.call @S1(%A, %j, %B): (memref<120xf32>, index, memref<120xf32>) -> ()
     }
   }
   return

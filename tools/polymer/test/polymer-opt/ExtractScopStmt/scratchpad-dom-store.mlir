@@ -47,5 +47,5 @@ func.func @foo(%A: memref<10xf32>) {
 // CHECK: func.func @foo(%[[ARG0:.*]]: memref<10xf32>) 
 // CHECK:   %[[VAL0:.*]] = memref.alloca()
 // CHECK:   affine.for %[[ARG1:.*]] = 0 to 10 
-// CHECK:     call @S0(%[[ARG0]], %[[ARG1]], %[[VAL0]])
-// CHECK:     call @S1(%[[ARG0]], %[[ARG1]], %[[VAL0]])
+// CHECK:     func.call @S0(%[[ARG0]], %[[ARG1]], %[[VAL0]])
+// CHECK:     func.call @S1(%[[ARG0]], %[[ARG1]], %[[VAL0]])

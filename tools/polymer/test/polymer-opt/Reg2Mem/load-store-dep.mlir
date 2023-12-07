@@ -171,14 +171,14 @@ func.func @use_in_conds(%A: memref<?xf32>, %B: memref<?xf32>, %C: memref<?xf32>)
 
 // -----
 
-// Dealing with func.function call.
+// Dealing with func.function func.call.
 
 func.func @f(%x: f32, %y: f32) -> (f32) {
   %0 = arith.addf %x, %y : f32
   return %0 : f32
 }
 
-func.func @use_by_arith_call(%A: memref<?xf32>, %B: memref<?x?xf32>) {
+func.func @use_by_arith_func.call(%A: memref<?xf32>, %B: memref<?x?xf32>) {
   %c0 = arith.constant 0 : index 
   %c1 = arith.constant 1 : index 
 
@@ -190,7 +190,7 @@ func.func @use_by_arith_call(%A: memref<?xf32>, %B: memref<?x?xf32>) {
     affine.for %j = 1 to %M {
       %k = affine.apply affine_map<(d0)[] -> (d0 - 1)>(%j)
       %1 = affine.load %B[%i, %k] : memref<?x?xf32>
-      %2 = call @f(%0, %1) : (f32, f32) -> (f32)
+      %2 = func.call @f(%0, %1) : (f32, f32) -> (f32)
       affine.store %2, %B[%i, %j] : memref<?x?xf32>
     }
   }
@@ -198,7 +198,7 @@ func.func @use_by_arith_call(%A: memref<?xf32>, %B: memref<?x?xf32>) {
   return
 }
 
-// CHECK: func.func @use_by_arith_call(%[[ARG0:.*]]: memref<?xf32>, %[[ARG1:.*]]: memref<?x?xf32>) {
+// CHECK: func.func @use_by_arith_func.call(%[[ARG0:.*]]: memref<?xf32>, %[[ARG1:.*]]: memref<?x?xf32>) {
 // CHECK-NEXT:   %[[MEM0:.*]] = memref.alloca() {scop.scratchpad} : memref<1xf32>
 // CHECK-NEXT:   %[[CST0:.*]] = arith.constant 0 : index
 // CHECK-NEXT:   %[[CST1:.*]] = arith.constant 1 : index
@@ -211,7 +211,7 @@ func.func @use_by_arith_call(%A: memref<?xf32>, %B: memref<?x?xf32>) {
 // CHECK-NEXT:       %[[VAL1:.*]] = affine.load %[[MEM0]][0] : memref<1xf32>
 // CHECK-NEXT:       %[[K:.*]] = affine.apply #[[MAP2:.*]](%[[J]])
 // CHECK-NEXT:       %[[VAL2:.*]] = affine.load %[[ARG1]][%[[I]], %[[K]]] : memref<?x?xf32>
-// CHECK-NEXT:       %[[VAL3:.*]] = call @f(%[[VAL1]], %[[VAL2]]) : (f32, f32) -> f32
+// CHECK-NEXT:       %[[VAL3:.*]] = func.call @f(%[[VAL1]], %[[VAL2]]) : (f32, f32) -> f32
 // CHECK-NEXT:       affine.store %[[VAL3]], %[[ARG1]][%[[I]], %[[J]]] : memref<?x?xf32>
 // CHECK-NEXT:     }
 // CHECK-NEXT:   }
@@ -228,14 +228,14 @@ func.func @g(%0: f32, %i: index, %mem: memref<?xf32>) {
   return 
 }
 
-func.func @use_by_store_call(%A: memref<?xf32>) {
+func.func @use_by_store_func.call(%A: memref<?xf32>) {
   %c0 = arith.constant 0 : index 
   %N = memref.dim %A, %c0 : memref<?xf32>
 
   %cst = arith.constant 1.23 : f32
 
   affine.for %i = 0 to %N {
-    call @g(%cst, %i, %A) : (f32, index, memref<?xf32>) -> ()
+    func.call @g(%cst, %i, %A) : (f32, index, memref<?xf32>) -> ()
   }
 
   return 

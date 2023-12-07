@@ -9,7 +9,7 @@ func.func @S0(%A: memref<10x60xf32>, %i: index, %j: index) attributes {scop.stmt
 
 func.func @foo(%A: memref<10x60xf32>, %i: index) {
   affine.for %j = 0 to 60 {
-    call @S0(%A, %i, %j): (memref<10x60xf32>, index, index) -> ()
+    func.call @S0(%A, %i, %j): (memref<10x60xf32>, index, index) -> ()
   }
   return
 }
@@ -17,4 +17,4 @@ func.func @foo(%A: memref<10x60xf32>, %i: index) {
 // CHECK: func.func @foo(%[[A:.*]]: memref<{{.*}}>, %[[i:.*]]: index)
 // CHECK-NEXT: affine.for 
 // CHECK-NEXT: affine.for %[[j:.*]] =
-// CHECK-NEXT: call @S0(%[[A]], %[[i]], %[[j]])
+// CHECK-NEXT: func.call @S0(%[[A]], %[[i]], %[[j]])

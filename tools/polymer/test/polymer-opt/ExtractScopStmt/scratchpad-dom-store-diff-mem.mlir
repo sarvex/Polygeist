@@ -10,5 +10,5 @@ func.func @foo(%A: memref<1xf32>, %B: memref<1xf32>) {
 }
 
 // CHECK: func.func @foo(%[[A:.*]]: memref<1xf32>, %[[B:.*]]: memref<1xf32>)
-// CHECK-NEXT: call @S0(%[[B]], %[[A]])
-// CHECK-NEXT: call @S1(%[[A]])
+// CHECK-NEXT: func.call @S0(%[[B]], %[[A]])
+// CHECK-NEXT: func.call @S1(%[[A]])

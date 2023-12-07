@@ -9,5 +9,5 @@ func.func @no_loop_blockarg(%A: memref<1xf32>, %a: f32) {
 // CHECK-NEXT: affine.store %[[a]], %[[A]][0]
 
 // CHECK: func.func @no_loop_blockarg(%[[A:.*]]: memref<1xf32>, %[[a:.*]]: f32) 
-// CHECK-NEXT: call @S0(%[[a]], %[[A]]) : (f32, memref<1xf32>) -> ()
+// CHECK-NEXT: func.call @S0(%[[a]], %[[A]]) : (f32, memref<1xf32>) -> ()
 

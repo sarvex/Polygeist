@@ -55,9 +55,9 @@ func.func @encrypt(%Sbox: memref<?x16xi32>, %statemt: memref<?xi32>)  {
 // CHECK:   %[[v0:.*]] = memref.alloca() : memref<1024xi32>
 // CHECK:   affine.for %[[i:.*]] = 1 to 5 
 // CHECK:     affine.for %[[j:.*]] = 0 to 16 
-// CHECK:       call @S0(%[[statemt]], %[[j]], %[[Sbox]])
+// CHECK:       func.call @S0(%[[statemt]], %[[j]], %[[Sbox]])
 // CHECK:     affine.for %[[j:.*]] = 0 to 1023 
-// CHECK:       call @S1(%[[j]], %[[v0]], %[[statemt]])
-// CHECK:       call @S2(%[[j]], %[[v0]], %[[statemt]])
+// CHECK:       func.call @S1(%[[j]], %[[v0]], %[[statemt]])
+// CHECK:       func.call @S2(%[[j]], %[[v0]], %[[statemt]])
 // CHECK:     affine.for %[[j:.*]] = 0 to 1024 
-// CHECK:       call @S3(%[[statemt]], %[[j]], %[[v0]])
+// CHECK:       func.call @S3(%[[statemt]], %[[j]], %[[v0]])

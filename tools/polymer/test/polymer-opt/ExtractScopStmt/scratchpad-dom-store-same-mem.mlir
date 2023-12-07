@@ -19,5 +19,5 @@ func.func @foo(%A: memref<1xf32>) {
 
 // CHECK: func.func @foo(%[[A:.*]]: memref<1xf32>)
 // CHECK-NEXT: %[[SCRATCHPAD:.*]] = memref.alloca() : memref<1xf32>
-// CHECK-NEXT: call @S0(%[[A]], %[[SCRATCHPAD]])
-// CHECK-NEXT: call @S1(%[[A]], %[[SCRATCHPAD]])
+// CHECK-NEXT: func.call @S0(%[[A]], %[[SCRATCHPAD]])
+// CHECK-NEXT: func.call @S1(%[[A]], %[[SCRATCHPAD]])

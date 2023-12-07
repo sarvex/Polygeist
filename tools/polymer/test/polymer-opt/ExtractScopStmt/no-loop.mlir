@@ -11,4 +11,4 @@ func.func @no_loop(%A: memref<1xf32>) {
 // CHECK-NEXT: affine.store %[[CST]], %[[A]][0]
 
 // CHECK: func.func @no_loop(%[[A:.*]]: memref<1xf32>) 
-// CHECK-NEXT: call @S0(%[[A]]) : (memref<1xf32>) -> ()
+// CHECK-NEXT: func.call @S0(%[[A]]) : (memref<1xf32>) -> ()

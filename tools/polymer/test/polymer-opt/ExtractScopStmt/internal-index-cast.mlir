@@ -31,4 +31,4 @@ func.func @foo(%A: memref<1024xi32>, %B: memref<1024x16xi32>) {
 // CHECK: func.func @foo(%[[ARG0:.*]]: memref<1024xi32>, %[[ARG1:.*]]: memref<1024x16xi32>)
 // CHECK-NEXT: affine.for %[[I:.*]] = 1 to 5
 // CHECK-NEXT: affine.for %[[J:.*]] = 0 to 16
-// CHECK-NEXT: call @S0(%[[ARG0]], %[[J]], %[[ARG1]])
+// CHECK-NEXT: func.call @S0(%[[ARG0]], %[[J]], %[[ARG1]])
