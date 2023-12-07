@@ -39,7 +39,6 @@ using namespace polymer;
 
 #define DEBUG_TYPE "pluto-opt"
 
-namespace {
 struct PlutoOptPipelineOptions
     : public mlir::PassPipelineOptions<PlutoOptPipelineOptions> {
   Option<std::string> dumpClastAfterPluto{
@@ -64,8 +63,6 @@ struct PlutoOptPipelineOptions
                              cl::desc("Enable diamond tiling"),
                              cl::init(false)};
 };
-
-} // namespace
 
 /// The main function that implements the Pluto based optimization.
 /// TODO: transform options?
@@ -132,7 +129,6 @@ plutoTransform(mlir::func::FuncOp f, OpBuilder &rewriter,
   return g;
 }
 
-namespace {
 class PlutoTransformPass
     : public mlir::PassWrapper<PlutoTransformPass,
                                OperationPass<mlir::ModuleOp>> {
@@ -185,8 +181,6 @@ public:
     }
   }
 };
-
-} // namespace
 
 // -------------------------- PlutoParallelizePass ----------------------------
 
@@ -265,7 +259,6 @@ static void plutoParallelize(mlir::func::FuncOp f, OpBuilder b) {
   }
 }
 
-namespace {
 /// Turn affine.for marked as scop.parallelizable by Pluto into actual
 /// affine.parallel operation.
 struct PlutoParallelizePass
@@ -278,7 +271,6 @@ struct PlutoParallelizePass
     plutoParallelize(f, b);
   }
 };
-} // namespace
 
 static void dedupIndexCast(func::FuncOp f) {
   if (f.getBlocks().empty())
@@ -305,13 +297,11 @@ static void dedupIndexCast(func::FuncOp f) {
     op->erase();
 }
 
-namespace {
 struct DedupIndexCastPass
     : public mlir::PassWrapper<DedupIndexCastPass,
                                OperationPass<mlir::func::FuncOp>> {
   void runOnOperation() override { dedupIndexCast(getOperation()); }
 };
-} // namespace
 
 void polymer::registerPlutoTransformPass() {
   PassPipelineRegistration<PlutoOptPipelineOptions>(

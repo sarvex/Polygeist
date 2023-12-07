@@ -505,8 +505,6 @@ static void replaceUsesByStored(mlir::func::FuncOp f, OpBuilder &b) {
   }
 }
 
-namespace {
-
 class ExtractScopStmtPass
     : public mlir::PassWrapper<ExtractScopStmtPass,
                                OperationPass<mlir::ModuleOp>> {
@@ -529,8 +527,6 @@ class ExtractScopStmtPass
     }
   }
 };
-
-} // namespace
 
 void polymer::registerExtractScopStmtPass() {
   PassPipelineRegistration<>(

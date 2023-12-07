@@ -61,7 +61,6 @@ static bool hasSingleStore(Block *block) {
   return true;
 }
 
-namespace {
 struct MatchIfElsePass
     : PassWrapper<MatchIfElsePass, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
@@ -132,7 +131,6 @@ struct MatchIfElsePass
     LLVM_DEBUG(dbgs() << "After store matched:\n" << f << "\n\n");
   }
 };
-} // namespace
 
 /// ---------------------- LiftStoreOps ------------------------------
 
@@ -286,7 +284,6 @@ static bool processLiftStoreOps(func::FuncOp f, OpBuilder &b) {
   return changed;
 }
 
-namespace {
 struct LiftStoreOps : PassWrapper<LiftStoreOps, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
     func::FuncOp f = getOperation();
@@ -300,7 +297,6 @@ struct LiftStoreOps : PassWrapper<LiftStoreOps, OperationPass<func::FuncOp>> {
     LLVM_DEBUG(dbgs() << "After LiftStoreOps: " << f << "\n\n");
   }
 };
-} // namespace
 
 /// ---------------------- FoldSCFIf ----------------------------------
 
@@ -364,7 +360,6 @@ static bool process(func::FuncOp f, OpBuilder &b) {
   return changed;
 }
 
-namespace {
 struct FoldSCFIfPass : PassWrapper<FoldSCFIfPass, OperationPass<func::FuncOp>> {
   void runOnOperation() override {
     func::FuncOp f = getOperation();
@@ -376,7 +371,6 @@ struct FoldSCFIfPass : PassWrapper<FoldSCFIfPass, OperationPass<func::FuncOp>> {
       ;
   }
 };
-} // namespace
 
 void polymer::registerFoldSCFIfPass() {
   PassPipelineRegistration<>(

@@ -310,7 +310,6 @@ static void scopStmtSplit(ModuleOp m, OpBuilder &b, int toSplit) {
   scopStmtSplit(m, b, func, call, opToSplit);
 }
 
-namespace {
 struct ScopStmtSplitPass
     : public mlir::PassWrapper<ScopStmtSplitPass, OperationPass<ModuleOp>> {
   ScopStmtSplitPass() = default;
@@ -339,9 +338,7 @@ struct ScopStmtSplitPass
       scopStmtSplit(m, b, id);
   }
 };
-} // namespace
 
-namespace {
 /// Finds the pattern of casting memref from static shape to dynamic shape,
 /// which will later be consumed by a function call, and rewrites that function
 /// as a new one that directly consumes the statically-shaped memref type.
@@ -435,9 +432,7 @@ struct RewriteScratchpadTypePass
     }
   }
 };
-} // namespace
 
-namespace {
 struct SinkScratchpadPass
     : public mlir::PassWrapper<SinkScratchpadPass, OperationPass<ModuleOp>> {
 
@@ -502,8 +497,6 @@ struct SinkScratchpadPass
     }
   }
 };
-
-} // namespace
 
 static bool isSplittable(Operation *op) {
   // NOTE: some ops cannot be annotated in textual format. We skip them for now.
@@ -573,8 +566,6 @@ static int annotateSplittable(func::FuncOp f, OpBuilder &b, int startId) {
   return id - startId;
 }
 
-namespace {
-
 struct AnnotateSplittablePass
     : public mlir::PassWrapper<AnnotateSplittablePass,
                                OperationPass<ModuleOp>> {
@@ -588,8 +579,6 @@ struct AnnotateSplittablePass
     });
   }
 };
-
-} // namespace
 
 static int64_t findOperand(Value value, Operation *op) {
   for (auto operand : enumerate(op->getOperands()))
@@ -685,8 +674,6 @@ static bool hasScratchpadDefined(func::FuncOp f) {
   return result;
 }
 
-namespace {
-
 /// Find scratchpads created by statement split and unify them into a single
 /// one.
 struct UnifyScratchpadPass
@@ -709,7 +696,6 @@ struct UnifyScratchpadPass
     unifyScratchpad(f, m, b);
   }
 };
-} // namespace
 
 static void
 findAccessPatterns(Operation *op,
@@ -902,8 +888,6 @@ int64_t annotateHeuristic(func::FuncOp f, int64_t startId, OpBuilder &b) {
   return currId;
 }
 
-namespace {
-
 struct AnnotateHeuristicPass
     : public mlir::PassWrapper<AnnotateHeuristicPass, OperationPass<ModuleOp>> {
   void runOnOperation() override {
@@ -914,8 +898,6 @@ struct AnnotateHeuristicPass
     m.walk([&](func::FuncOp f) { splitId = annotateHeuristic(f, splitId, b); });
   }
 };
-
-} // namespace
 
 void polymer::registerScopStmtOptPasses() {
   // PassRegistration<AnnotateSplittablePass>(

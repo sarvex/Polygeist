@@ -76,7 +76,6 @@ static void annotatePointLoops(FuncOp f, OpBuilder &b) {
     annotatePointLoops(caller.getOperands(), b);
 }
 
-namespace {
 struct AnnotatePointLoopsPass
     : public mlir::PassWrapper<AnnotatePointLoopsPass, OperationPass<FuncOp>> {
   void runOnOperation() override {
@@ -86,7 +85,6 @@ struct AnnotatePointLoopsPass
     annotatePointLoops(f, b);
   }
 };
-} // namespace
 
 void polymer::registerLoopAnnotatePasses() {
   // PassRegistration<AnnotatePointLoopsPass>();

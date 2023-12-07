@@ -306,8 +306,6 @@ static void separateAffineIfBlocks(mlir::func::FuncOp f, OpBuilder &b) {
   }
 }
 
-namespace {
-
 class RegToMemPass
     : public mlir::PassWrapper<RegToMemPass,
                                OperationPass<mlir::func::FuncOp>> {
@@ -324,8 +322,6 @@ public:
     demoteRegisterToMemory(f, builder);
   }
 };
-
-} // namespace
 
 /// TODO: value analysis
 static void insertRedundantLoad(mlir::func::FuncOp f, OpBuilder &b) {
@@ -392,7 +388,6 @@ static void insertRedundantLoad(mlir::func::FuncOp f, OpBuilder &b) {
   }
 }
 
-namespace {
 class InsertRedundantLoadPass
     : public mlir::PassWrapper<InsertRedundantLoadPass,
                                OperationPass<mlir::func::FuncOp>> {
@@ -405,8 +400,6 @@ public:
     insertRedundantLoad(f, b);
   }
 };
-
-} // namespace
 
 namespace {
 using IterArgToMemMap = llvm::MapVector<mlir::Value, mlir::Value>;
@@ -554,7 +547,6 @@ static void demoteLoopReduction(mlir::func::FuncOp f, OpBuilder &b) {
     demoteLoopReduction(f, forOp, b);
 }
 
-namespace {
 class DemoteLoopReductionPass
     : public mlir::PassWrapper<DemoteLoopReductionPass,
                                OperationPass<mlir::func::FuncOp>> {
@@ -566,8 +558,6 @@ public:
     demoteLoopReduction(f, b);
   }
 };
-
-} // namespace
 
 /// ---------------- Array Expansion -------------------
 
@@ -889,7 +879,6 @@ static void arrayExpansion(mlir::func::FuncOp f, OpBuilder &b) {
     expandScratchpad(f, spad, b);
 }
 
-namespace {
 class ArrayExpansionPass
     : public mlir::PassWrapper<ArrayExpansionPass,
                                OperationPass<mlir::func::FuncOp>> {
@@ -901,7 +890,6 @@ public:
     arrayExpansion(f, b);
   }
 };
-} // namespace
 
 void polymer::registerRegToMemPass() {
   PassPipelineRegistration<>(

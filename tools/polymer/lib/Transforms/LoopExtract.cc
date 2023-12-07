@@ -142,7 +142,6 @@ static int extractPointLoops(FuncOp f, int startId, OpBuilder &b) {
   return startId;
 }
 
-namespace {
 struct ExtractPointLoopsPass
     : public mlir::PassWrapper<ExtractPointLoopsPass, OperationPass<ModuleOp>> {
   void runOnOperation() override {
@@ -160,7 +159,6 @@ struct ExtractPointLoopsPass
       startId += extractPointLoops(f, startId, b);
   }
 };
-} // namespace
 
 void polymer::registerLoopExtractPasses() {
   // PassRegistration<ExtractPointLoopsPass>();
