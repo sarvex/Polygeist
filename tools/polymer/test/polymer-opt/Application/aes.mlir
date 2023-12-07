@@ -1,6 +1,6 @@
 // RUN: polymer-opt %s -fold-scf-if -reg2mem -extract-scop-stmt | FileCheck %s
  
-func @encrypt(%Sbox: memref<?x16xi32>, %statemt: memref<?xi32>)  {
+func.func @encrypt(%Sbox: memref<?x16xi32>, %statemt: memref<?xi32>)  {
   %c1_i32 = arith.constant 1 : i32
   %c4_i32 = arith.constant 4 : i32
   %c15_i32 = arith.constant 15 : i32
@@ -51,7 +51,7 @@ func @encrypt(%Sbox: memref<?x16xi32>, %statemt: memref<?xi32>)  {
   return
 }
 
-// CHECK: func @encrypt(%[[Sbox:.*]]: memref<?x16xi32>, %[[statemt:.*]]: memref<?xi32>) 
+// CHECK: func.func @encrypt(%[[Sbox:.*]]: memref<?x16xi32>, %[[statemt:.*]]: memref<?xi32>) 
 // CHECK:   %[[v0:.*]] = memref.alloca() : memref<1024xi32>
 // CHECK:   affine.for %[[i:.*]] = 1 to 5 
 // CHECK:     affine.for %[[j:.*]] = 0 to 16 
