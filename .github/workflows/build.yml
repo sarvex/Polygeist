@@ -8,13 +8,14 @@ on:
 
 jobs:
   build:
-    name: Build ${{ matrix.build }} ${{ matrix.os }} ${{ matrix.compiler }}
+    name: Build ${{ matrix.build }} ${{ matrix.os }} ${{ matrix.compiler }} polymer=${{ matrix.polymer }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         build: ["Release"] #, "Debug"] # "RelWithDebInfo"
+        polymer: ["1", "0"] #, "Debug"] # "RelWithDebInfo"
         os: [ubuntu-latest]
         compiler: [gcc, clang]
         cxxcompiler: [g++, clang++]
@@ -37,6 +38,7 @@ jobs:
       run: echo "version=$(cat src/.git/modules/llvm-project/HEAD)" >> $GITHUB_OUTPUT
 
     - name: Cache Pluto
+      if: ${{ matrix.polymer }} == "1"
       id: cache-pluto
       uses: actions/cache@v3
       with:
@@ -76,7 +78,7 @@ jobs:
       run: |
         cd build
         ls ../mlir-build/lib/cmake/clang
-        cmake ../src/ -GNinja -DMLIR_DIR=`pwd`/../mlir-build/lib/cmake/mlir -DLLVM_EXTERNAL_LIT=`pwd`/../mlir-build/bin/llvm-lit -DClang_DIR=`pwd`/../mlir-build/lib/cmake/clang -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_C_COMPILER=${{matrix.compiler}} -DCMAKE_CXX_COMPILER=${{matrix.cxxcompiler}} -DPOLYGEIST_ENABLE_POLYMER=1 -DPOLYGEIST_PLUTO_DIR=$(pwd)/../pluto-build/
+        cmake ../src/ -GNinja -DMLIR_DIR=`pwd`/../mlir-build/lib/cmake/mlir -DLLVM_EXTERNAL_LIT=`pwd`/../mlir-build/bin/llvm-lit -DClang_DIR=`pwd`/../mlir-build/lib/cmake/clang -DCMAKE_BUILD_TYPE=${{ matrix.build }} -DCMAKE_C_COMPILER=${{matrix.compiler}} -DCMAKE_CXX_COMPILER=${{matrix.cxxcompiler}} -DPOLYGEIST_ENABLE_POLYMER=${{ matrix.polymer }} -DPOLYGEIST_PLUTO_DIR=$(pwd)/../pluto-build/
 
     - name: test cgeist
       run: |
@@ -84,4 +86,10 @@ jobs:
         ninja
         ninja check-polygeist-opt
         ninja check-cgeist
+
+    - name: test pluto
+      if: ${{ matrix.polymer }} == "1"
+      run: |
+        cd build
+        ninja
         ninja check-polymer
