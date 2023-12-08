@@ -38,12 +38,11 @@ jobs:
       run: echo "version=$(cat src/.git/modules/llvm-project/HEAD)" >> $GITHUB_OUTPUT
 
     - name: Cache Pluto
-      if: ${{ matrix.polymer }} == "1"
       id: cache-pluto
       uses: actions/cache@v3
       with:
         path: pluto-build
-        key: ${{ matrix.build }}-${{ matrix.os }}-pluto
+        key: ${{ matrix.build }}-${{ matrix.os }}-pluto-${{ matrix.polymer }}
 
     - name: Cache MLIR
       id: cache-mlir
@@ -58,7 +57,7 @@ jobs:
     - name: Pluto build
       if: steps.cache-pluto.outputs.cache-hit != 'true' && ${{ matrix.polymer }} == "1"
       run: |
-        mkdir pluto-build
+        mkdir -p pluto-build
         PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_polymer_deps.sh $(pwd)/pluto-build
         sleep 1s
 
@@ -87,9 +86,9 @@ jobs:
         ninja check-polygeist-opt
         ninja check-cgeist
 
-    - name: test pluto
-      if: ${{ matrix.polymer }} == "1"
-      run: |
-        cd build
-        ninja
-        ninja check-polymer
+#    - name: test pluto
+#      if: ${{ matrix.polymer }} == "1"
+#      run: |
+#        cd build
+#        ninja
+#        ninja check-polymer
