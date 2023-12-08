@@ -226,7 +226,9 @@ void OslScopBuilder::buildScopContext(
         symbols.insert(it, sym);
     }
   }
-  ctx = affine::FlatAffineValueConstraints();
+
+  ctx = affine::FlatAffineValueConstraints(/*numDims=*/0,
+                                           /*numSymbols=*/symbols.size());
   ctx.setValues(0, symbols.size(), symbols);
 
   // Union with the domains of all Scop statements. We first merge and align the
