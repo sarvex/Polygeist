@@ -56,7 +56,7 @@ jobs:
       run: sudo apt-get install -y llvm-15-tools ninja-build libbison-dev libtool libgmp-dev #libflex-dev cmake binutils-gold binutils binutils-dev ${{ matrix.compiler }} ${{ matrix.linker-pkg }}
 
     - name: Pluto build
-      if: steps.cache-pluto.outputs.cache-hit != 'true'
+      if: steps.cache-pluto.outputs.cache-hit != 'true' && ${{ matrix.polymer }} == "1"
       run: |
         mkdir pluto-build
         PATH="/usr/lib/llvm-15/bin/:$PATH" src/tools/polymer/build_polymer_deps.sh $(pwd)/pluto-build
