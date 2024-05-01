@@ -38,7 +38,7 @@ jobs:
 
     - name: Cache MLIR
       id: cache-mlir
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: mlir-build
         key: ${{ matrix.build }}-${{ matrix.os }}-mlir-${{ steps.getversion.outputs.version }}
